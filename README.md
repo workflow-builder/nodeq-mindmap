@@ -343,7 +343,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 Visit: https://nodeq.cloud/
+- 📧 live: https://nodeq.cloud/
 - 🐛 Issues: [GitHub Issues](https://github.com/workflow-builder/nodeq-mindmap/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/orgs/workflow-builder/discussions)
 
