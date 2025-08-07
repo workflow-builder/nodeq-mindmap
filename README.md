@@ -343,9 +343,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 Email: support@nodeq.dev
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/nodeq-mindmap/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/your-username/nodeq-mindmap/discussions)
+- 📧 Visit: https://nodeq.cloud/
+- 🐛 Issues: [GitHub Issues](https://github.com/workflow-builder/nodeq-mindmap/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/orgs/workflow-builder/discussions)
 
 ---
 
