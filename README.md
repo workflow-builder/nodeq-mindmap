@@ -307,7 +307,7 @@ export default {
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/nodeq-mindmap.git
+git clone https://github.com/workflow-builder/nodeq-mindmap.git
 cd nodeq-mindmap
 
 # Install dependencies
@@ -343,7 +343,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 live: https://nodeq.cloud/
+- 📧 live: [nodeq](https://nodeq.cloud/)
 - 🐛 Issues: [GitHub Issues](https://github.com/workflow-builder/nodeq-mindmap/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/orgs/workflow-builder/discussions)
 
