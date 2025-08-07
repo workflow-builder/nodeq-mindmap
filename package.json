@@ -1,0 +1,49 @@
+{
+  "name": "nodeq-mindmap",
+  "version": "1.0.0",
+  "description": "A lightweight, interactive mind map visualization library for hierarchical data structures",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/nodeq-mindmap.git"
+  },
+  "keywords": [
+    "mindmap",
+    "visualization",
+    "d3",
+    "interactive",
+    "hierarchical-data",
+    "tree-visualization",
+    "data-visualization",
+    "career-mapping",
+    "json-to-mindmap"
+  ],
+  "author": "NODEQ Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "d3": "^7.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/d3": "^7.4.3",
+    "@types/jest": "^29.5.12",
+    "jest": "^29.7.0",
+    "rollup": "^4.12.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "d3": "^7.8.5"
+  }
+}
