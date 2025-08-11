@@ -1,0 +1,68 @@
+The latest workflow run (job 47860553610) still fails during the “Build package” step because the TypeScript compiler errors out. The root cause isn’t Rollup or npm; it’s that the repository still contains invalid generic type usages. In both src/index.ts and src/mindmap.ts the code uses Partial and Required without specifying a type argument, which is illegal in TypeScript. Examples include:
+
+In src/index.ts, the theme property in NodeQConfig is declared as theme?: Partial and the updateTheme method takes theme: Partial
+GitHub
+GitHub
+. Partial is a generic type that must receive a type parameter (e.g. Partial<Theme>). Without it, the compiler produces an error like “Generic type ‘Partial<T>’ requires 1 type argument(s).”
+
+In src/mindmap.ts, config is typed as private config: Required and updateTheme is declared updateTheme(theme: Partial)
+GitHub
+GitHub
+. Similarly, Required and Partial both require a type argument; leaving it blank triggers a compile‑time error.
+
+Because the build script (npm run build) invokes Rollup, which in turn runs the TypeScript compiler via @rollup/plugin-typescript, these invalid generic declarations stop the build and cause the workflow to fail.
+
+How to fix
+Add the missing type parameters to Partial and Required or avoid using these utilities altogether. For example:
+
+ts
+Copy
+Edit
+// src/index.ts
+type Theme = { nodeColor: string; textColor: string; linkColor: string;
+               backgroundColor: string; fontSize: number; fontFamily: string; };
+
+export interface NodeQConfig {
+  container: string | HTMLElement;
+  data: any;
+  width?: number;
+  height?: number;
+  theme?: Partial<Theme>;             // specify type argument here
+  interactive?: boolean;
+  zoomable?: boolean;
+  collapsible?: boolean;
+  nodeSpacing?: number;
+  levelSpacing?: number;
+  onNodeClick?: (node: MindMapNode) => void;
+  onNodeHover?: (node: MindMapNode) => void;
+  onPipelineCreated?: (pipeline: PipelineConfig) => void;
+  onDataTransformed?: (result: any) => void;
+}
+
+export class NodeQMindMap {
+  …
+  updateTheme(theme: Partial<Theme>): void {  // type argument added
+    this.config.theme = { …this.config.theme, …theme };
+    this.renderMindMap();
+  }
+}
+Update src/mindmap.ts accordingly. If you want to keep using Required to make every property mandatory, add the type argument:
+
+ts
+Copy
+Edit
+import { NodeQConfig, Theme } from './types';
+
+export class NodeQMindMap {
+  private config: Required<NodeQConfig>;   // specify type argument
+  …
+  updateTheme(theme: Partial<Theme>): void {
+    this.config.theme = { …this.config.theme, …theme };
+    this.renderMindMap();
+  }
+}
+Alternatively, drop Required entirely and type config simply as NodeQConfig & { theme: Theme; … }.
+
+Run npm run type-check locally (or add it as a separate CI step) after making these changes to ensure there are no other TypeScript errors. Once these generic issues are fixed, Rollup should compile your code without failing the build step, and the workflow will proceed to upload the build artifacts and publish the binary.
+
+In summary, the workflow is still failing because Partial and Required are used without the required type arguments. Correcting those declarations in src/index.ts and src/mindmap.ts will resolve the compiler errors and allow the build to succeed
