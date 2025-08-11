@@ -8,125 +8,39 @@ A revolutionary lightweight library that combines **interactive mind map visuali
 
 ## 🏗️ System Architecture Overview
 
-### Mind Map Visualization Architecture
+<div style="display: flex; gap: 20px; flex-wrap: wrap;">
+
+<div style="flex: 1; min-width: 400px;">
+
+### Mind Map Visualization
 
 ```mermaid
-flowchart TB
-    subgraph "📄 Data Input"
-        A[JSON Data]
-        B[Nested Objects]
-        C[Arrays & Lists]
-    end
-
-    subgraph "🔄 Processing Engine"
-        D[Schema Detection]
-        E[Node Generation]
-        F[Hierarchy Mapping]
-        G[Layout Calculation]
-    end
-
-    subgraph "🎨 Visualization Layer"
-        H[D3.js Rendering]
-        I[Interactive Nodes]
-        J[Zoom & Pan]
-        K[Theme System]
-    end
-
-    subgraph "👥 User Interaction"
-        L[Click Events]
-        M[Hover Effects]
-        N[Expand/Collapse]
-        O[Export Options]
-    end
-
-    A --> D
-    B --> D
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-    G --> H
-    H --> I
-    I --> J
-    J --> K
-    K --> L
-    L --> M
-    M --> N
-    N --> O
-
-    classDef input fill:#e3f2fd
-    classDef processing fill:#f3e5f5
-    classDef visual fill:#e8f5e8
-    classDef interaction fill:#fff3e0
-
-    class A,B,C input
-    class D,E,F,G processing
-    class H,I,J,K visual
-    class L,M,N,O interaction
+flowchart TD
+    A[JSON Data] --> B[Schema Detection]
+    B --> C[Node Generation]
+    C --> D[D3.js Rendering]
+    D --> E[Interactive UI]
+    E --> F[Export/Theme]
 ```
 
-### Data Pipeline Processor Architecture
+</div>
+
+<div style="flex: 1; min-width: 400px;">
+
+### Pipeline Processor
 
 ```mermaid
-flowchart TB
-    subgraph "📥 Input Sources"
-        A[IoT Sensors]
-        B[REST APIs]
-        C[Kafka Streams]
-        D[Databases]
-        E[WebSockets]
-    end
-
-    subgraph "🧠 ML Analysis Engine"
-        F[Pattern Recognition]
-        G[Schema Mapping]
-        H[Rule Generation]
-        I[Transformation Logic]
-    end
-
-    subgraph "⚡ Pipeline Engine"
-        J[Data Validation]
-        K[Static Execution]
-        L[Error Handling]
-        M[Performance Monitoring]
-    end
-
-    subgraph "📤 Output Destinations"
-        N[Analytics DB]
-        O[Real-time Dashboard]
-        P[Alert Systems]
-        Q[ML Training Data]
-    end
-
-    A -.->|Stream| F
-    B -.->|Poll| F
-    C -.->|Subscribe| F
-    D -.->|CDC| F
-    E -.->|Live| F
-
-    F --> G
-    G --> H
-    H --> I
-    I --> J
-    J --> K
-    K --> L
-    L --> M
-
-    M --> N
-    M --> O
-    M --> P
-    M --> Q
-
-    classDef sources fill:#ffebee
-    classDef ml fill:#e8eaf6
-    classDef pipeline fill:#e0f2f1
-    classDef outputs fill:#fafafa
-
-    class A,B,C,D,E sources
-    class F,G,H,I ml
-    class J,K,L,M pipeline
-    class N,O,P,Q outputs
+flowchart TD
+    A[Input Sample] --> B[Configuration]
+    C[Output Sample] --> B
+    B --> D[ML Analysis]
+    D --> E[Pipeline Generation]
+    E --> F[Static Execution]
 ```
+
+</div>
+
+</div>
 
 ## 🚀 What's New in v2.1.0
 
