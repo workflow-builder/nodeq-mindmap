@@ -3,12 +3,11 @@ import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { builtinModules } from 'module';
-import pkg from './package.json' assert { type: 'json' };
 
 const externalDeps = [
   ...builtinModules,
   ...builtinModules.map(m => `node:${m}`), // node: specifiers
-  ...Object.keys(pkg.dependencies || {}), // externalize all runtime deps
+  'd3', '@tensorflow/tfjs', 'jsdom', 'commander', // npm dependencies
 ];
 
 export default [
