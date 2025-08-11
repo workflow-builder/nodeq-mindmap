@@ -8,19 +8,21 @@ export interface MindMapNode {
   [key: string]: any;
 }
 
+export interface Theme {
+  nodeColor?: string;
+  textColor?: string;
+  linkColor?: string;
+  backgroundColor?: string;
+  fontSize?: number;
+  fontFamily?: string;
+}
+
 export interface NodeQConfig {
   container: string | HTMLElement;
   data: any;
   width?: number;
   height?: number;
-  theme?: {
-    nodeColor?: string;
-    textColor?: string;
-    linkColor?: string;
-    backgroundColor?: string;
-    fontSize?: number;
-    fontFamily?: string;
-  };
+  theme?: Theme;
   interactive?: boolean;
   zoomable?: boolean;
   collapsible?: boolean;

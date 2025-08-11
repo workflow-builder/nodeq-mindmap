@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { MindMapNode, NodeQConfig } from './types';
+import { MindMapNode, NodeQConfig, Theme } from './types';
 import { JsonSchemaAdapter } from './json-adapter';
 
 export class NodeQMindMap {
@@ -59,7 +59,7 @@ export class NodeQMindMap {
     this.renderMindMap();
   }
 
-  updateTheme(theme: Partial<NodeQConfig['theme']>): void {
+  updateTheme(theme: Partial<Theme>): void {
     this.config.theme = { ...this.config.theme, ...theme };
     this.renderMindMap();
   }
