@@ -1,6 +1,6 @@
 # NODEQ MindMap & Pipeline Builder 🧠⚡
 
-[![npm version](https://badge.fury.io/js/nodeq-mindmap.svg)](https://badge.fury.io/js/nodeq-mindmap)
+[![npm version](https://img.shields.io/npm/v/nodeq-mindmap.svg)](https://www.npmjs.com/package/nodeq-mindmap)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/github/stars/workflow-builder/nodeq-mindmap?style=social)](https://github.com/workflow-builder/nodeq-mindmap)
 
@@ -83,7 +83,107 @@ const result = mindMap.executePipeline({
 // Result: { "fullName": "Jane Smith", "isAdult": false }
 ```
 
-## 📚 Documentation
+## 📋 Core API Methods
+
+### Mind Map Methods
+```javascript
+const mindMap = new NodeQMindMap(config);
+
+// Basic operations
+mindMap.render();                    // Render the mind map
+mindMap.updateData(newData);         // Update with new data
+mindMap.updateTheme(themeOptions);   // Change theme
+mindMap.exportSVG();                 // Export as SVG string
+mindMap.destroy();                   // Clean up resources
+
+// Interactive features
+mindMap.expandAll();                 // Expand all nodes
+mindMap.collapseAll();              // Collapse all nodes
+mindMap.zoomToFit();                // Auto-zoom to content
+mindMap.centerMap();                // Center the view
+```
+
+### Pipeline Methods
+```javascript
+// Pipeline creation and management
+await mindMap.createDataPipeline(name, inputSample, outputSample, options);
+await mindMap.updatePipelineInput(newInputSample);
+await mindMap.updatePipelineOutput(newOutputSample);
+mindMap.executePipeline(inputData);
+
+// Pipeline utilities
+mindMap.getAllPipelines();          // Get all pipelines
+mindMap.switchToPipeline(pipelineId);  // Switch active pipeline
+mindMap.exportPipelineCode();       // Generate executable code
+mindMap.getPipelineEngine();        // Access engine directly
+```
+
+### Configuration Options
+```javascript
+const config = {
+  container: '#mindmap-container',   // Required: DOM selector
+  data: jsonData,                   // Required: JSON data
+  width: 800,                       // Optional: Canvas width
+  height: 600,                      // Optional: Canvas height
+  
+  // Styling
+  theme: {
+    nodeColor: '#4299e1',          // Node background
+    textColor: '#2d3748',          // Text color
+    linkColor: '#a0aec0',          // Connection lines
+    backgroundColor: '#ffffff',     // Canvas background
+    fontSize: 14,                  // Text size
+    fontFamily: 'Arial, sans-serif'
+  },
+  
+  // Behavior
+  interactive: true,               // Enable interactions
+  zoomable: true,                 // Enable zoom/pan
+  collapsible: true,              // Enable node collapse
+  
+  // Callbacks
+  onNodeClick: (node) => { /* handle click */ },
+  onNodeHover: (node) => { /* handle hover */ },
+  onPipelineCreated: (pipeline) => { /* handle creation */ },
+  onDataTransformed: (result) => { /* handle transformation */ }
+};
+```
+
+## 📋 Quick Reference
+
+### Essential Methods
+```javascript
+// Basic Usage
+const mindMap = new NodeQMindMap({ container: '#container', data: myData });
+mindMap.render();
+
+// Data Operations
+mindMap.updateData(newData);
+mindMap.exportSVG();
+
+// Pipeline Operations
+await mindMap.createDataPipeline('MyPipeline', inputSample, outputSample);
+const result = mindMap.executePipeline(newData);
+
+// Theme Updates
+mindMap.updateTheme({ nodeColor: '#ff6b6b', backgroundColor: '#f8f9fa' });
+```
+
+### Built-in Themes
+```javascript
+// Available theme presets
+const themes = ['default', 'dark', 'forest', 'ocean'];
+
+// Apply theme
+mindMap.updateTheme({
+  nodeColor: '#4299e1',      // Node background
+  textColor: '#2d3748',      // Text color  
+  linkColor: '#a0aec0',      // Connection lines
+  backgroundColor: '#ffffff' // Canvas background
+});
+```
+
+## 📚 Complete Documentation
 
 | 📖 Guide | 📝 Description |
 |----------|----------------|
@@ -120,79 +220,230 @@ const result = mindMap.executePipeline({
 | High maintenance overhead | Auto-adapting pipelines |
 | Custom monitoring setup | Built-in performance metrics |
 
-## 🎨 Framework Examples
+## 🎨 Framework Integration Examples
 
-<details>
-<summary><strong>React Integration</strong></summary>
-
+### React Integration
 ```jsx
 import React, { useEffect, useRef } from 'react';
 import { NodeQMindMap } from 'nodeq-mindmap';
 
 const MindMapComponent = ({ data }) => {
   const containerRef = useRef(null);
+  const mindMapRef = useRef(null);
 
   useEffect(() => {
-    const mindMap = new NodeQMindMap({
-      container: containerRef.current,
-      data: data,
-      theme: { nodeColor: '#4299e1' }
-    });
-    mindMap.render();
+    if (containerRef.current) {
+      mindMapRef.current = new NodeQMindMap({
+        container: containerRef.current,
+        data: data,
+        width: 800,
+        height: 600,
+        theme: { 
+          nodeColor: '#4299e1',
+          backgroundColor: '#f7fafc' 
+        },
+        onNodeClick: (node) => {
+          console.log('Clicked:', node.topic);
+        }
+      });
+      mindMapRef.current.render();
+    }
+
+    return () => {
+      if (mindMapRef.current) {
+        mindMapRef.current.destroy();
+      }
+    };
   }, [data]);
 
-  return <div ref={containerRef}></div>;
+  return <div ref={containerRef} style={{ width: '100%', height: '600px' }}></div>;
 };
+
+export default MindMapComponent;
 ```
-</details>
 
-<details>
-<summary><strong>Vue.js Integration</strong></summary>
-
+### Vue.js Integration
 ```vue
 <template>
-  <div ref="mindmapContainer"></div>
+  <div ref="mindmapContainer" class="mindmap-container"></div>
 </template>
 
 <script>
 import { NodeQMindMap } from 'nodeq-mindmap';
 
 export default {
-  props: ['data'],
+  name: 'MindMapComponent',
+  props: {
+    data: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      mindMap: null
+    };
+  },
   mounted() {
-    this.mindMap = new NodeQMindMap({
-      container: this.$refs.mindmapContainer,
-      data: this.data
-    });
-    this.mindMap.render();
+    this.initializeMindMap();
+  },
+  beforeUnmount() {
+    if (this.mindMap) {
+      this.mindMap.destroy();
+    }
+  },
+  methods: {
+    initializeMindMap() {
+      this.mindMap = new NodeQMindMap({
+        container: this.$refs.mindmapContainer,
+        data: this.data,
+        width: 800,
+        height: 600,
+        interactive: true,
+        onNodeClick: (node) => {
+          this.$emit('node-clicked', node);
+        }
+      });
+      this.mindMap.render();
+    }
   }
 };
 </script>
+
+<style scoped>
+.mindmap-container {
+  width: 100%;
+  height: 600px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+</style>
 ```
-</details>
 
-<details>
-<summary><strong>HTML/CDN Usage</strong></summary>
+### Angular Integration
+```typescript
+// mindmap.component.ts
+import { Component, ElementRef, Input, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { NodeQMindMap } from 'nodeq-mindmap';
 
+@Component({
+  selector: 'app-mindmap',
+  template: `<div #mindmapContainer class="mindmap-container"></div>`,
+  styleUrls: ['./mindmap.component.css']
+})
+export class MindMapComponent implements OnInit, OnDestroy {
+  @ViewChild('mindmapContainer', { static: true }) container!: ElementRef;
+  @Input() data: any;
+  
+  private mindMap: NodeQMindMap | null = null;
+
+  ngOnInit() {
+    this.mindMap = new NodeQMindMap({
+      container: this.container.nativeElement,
+      data: this.data,
+      width: 800,
+      height: 600,
+      theme: {
+        nodeColor: '#6366f1',
+        backgroundColor: '#f8fafc'
+      }
+    });
+    this.mindMap.render();
+  }
+
+  ngOnDestroy() {
+    if (this.mindMap) {
+      this.mindMap.destroy();
+    }
+  }
+}
+```
+
+### Vanilla HTML/JavaScript
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeQ MindMap Demo</title>
     <script src="https://unpkg.com/nodeq-mindmap@2.1.0/dist/index.umd.js"></script>
+    <style>
+        #mindmap-container {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
-    <div id="mindmap"></div>
+    <h1>My Mind Map</h1>
+    <div id="mindmap-container"></div>
+    
     <script>
+        // Sample data
+        const projectData = {
+          "topic": "My Project",
+          "summary": "Full-stack web application",
+          "children": [
+            {
+              "topic": "Frontend",
+              "skills": ["React", "TypeScript", "Tailwind CSS"],
+              "children": [
+                { "topic": "Components", "skills": ["Header", "Sidebar", "Dashboard"] },
+                { "topic": "State Management", "skills": ["Redux", "Context API"] }
+              ]
+            },
+            {
+              "topic": "Backend", 
+              "skills": ["Node.js", "Express", "PostgreSQL"],
+              "children": [
+                { "topic": "API Routes", "skills": ["/api/users", "/api/projects"] },
+                { "topic": "Database", "skills": ["Users table", "Projects table"] }
+              ]
+            }
+          ]
+        };
+
+        // Initialize mind map
         const mindMap = new NodeQMindMap({
-            container: '#mindmap',
-            data: yourData
+            container: '#mindmap-container',
+            data: projectData,
+            width: 1000,
+            height: 600,
+            theme: {
+                nodeColor: '#3b82f6',
+                textColor: '#1f2937',
+                backgroundColor: '#f8fafc'
+            },
+            interactive: true,
+            zoomable: true,
+            collapsible: true,
+            onNodeClick: (node) => {
+                alert(`Clicked: ${node.topic}`);
+            },
+            onNodeHover: (node) => {
+                console.log(`Hovering: ${node.topic}`);
+            }
         });
+
+        // Render the mind map
         mindMap.render();
+        
+        // Example: Update data after 3 seconds
+        setTimeout(() => {
+            const newData = {
+                ...projectData,
+                topic: "Updated Project"
+            };
+            mindMap.updateData(newData);
+        }, 3000);
     </script>
 </body>
 </html>
 ```
-</details>
 
 ## 🛠️ CLI Usage
 
