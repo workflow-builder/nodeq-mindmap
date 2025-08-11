@@ -1,6 +1,5 @@
-
 import * as d3 from 'd3';
-import { PipelineEngine, DataSample, PipelineConfig, ModelConfig, DataSourceConfig } from './pipeline-engine';
+import { PipelineEngine, DataSample, PipelineConfig } from './pipeline-engine';
 
 export interface MindMapNode {
   topic: string;
@@ -178,30 +177,7 @@ export class NodeQMindMap {
   }
 
   private createSVG(): void {
-    // Clear existing content
-    d3.select(this.container).selectAll('*').remove();
 
-    // Create SVG
-    this.svg = d3.select(this.container)
-      .append('svg')
-      .attr('width', this.config.width)
-      .attr('height', this.config.height)
-      .style('background-color', this.config.theme.backgroundColor || '#ffffff');
-
-    // Create main group for zooming/panning
-    this.g = this.svg.append('g');
-
-    // Add zoom behavior if enabled
-    if (this.config.zoomable) {
-      const zoom = d3.zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.1, 3])
-        .on('zoom', (event) => {
-          this.g!.attr('transform', event.transform);
-        });
-
-      this.svg.call(zoom);
-    }
-  }
 
   async startRealtimeProcessing(): Promise<void> {
     if (!this.currentPipelineId) {
@@ -233,6 +209,30 @@ export class NodeQMindMap {
     const pipelineMindMap = this.pipelineToMindMap(pipeline);
     this.updateData(pipelineMindMap);
   }
+
+</old_str>
+
+    // Clear existing content
+    d3.select(this.container).selectAll('*').remove();
+
+    // Create SVG
+    this.svg = d3.select(this.container)
+      .append('svg')
+      .attr('width', this.config.width)
+      .attr('height', this.config.height)
+      .style('background-color', this.config.theme.backgroundColor);
+
+    // Create main group for zooming/panning
+    this.g = this.svg.append('g');
+
+    // Add zoom behavior if enabled
+    if (this.config.zoomable) {
+      const zoom = d3.zoom<SVGSVGElement, unknown>()
+        .scaleExtent([0.1, 3])
+        .on('zoom', (event) => {
+          this.g!.attr('transform', event.transform);
+        });
+
 
   // Enhanced Pipeline Management Methods
   async createDataPipeline(name: string, inputSample: any, outputSample: any, options?: {
@@ -491,6 +491,11 @@ export class NodeQMindMap {
     this.updateData(pipelineMindMap);
   }
 
+
+      this.svg.call(zoom);
+    }
+  }
+
   private renderMindMap(): void {
     if (!this.g) return;
 
@@ -519,7 +524,7 @@ export class NodeQMindMap {
         .y(d => d.x + 50)
       )
       .style('fill', 'none')
-      .style('stroke', this.config.theme.linkColor || '#a0aec0')
+      .style('stroke', this.config.theme.linkColor)
       .style('stroke-width', 2);
 
     // Create nodes
@@ -534,7 +539,7 @@ export class NodeQMindMap {
     // Add node circles
     nodes.append('circle')
       .attr('r', 25)
-      .style('fill', this.config.theme.nodeColor || '#4299e1')
+      .style('fill', this.config.theme.nodeColor)
       .style('stroke', '#fff')
       .style('stroke-width', 3);
 
@@ -543,9 +548,101 @@ export class NodeQMindMap {
       .attr('dy', '.35em')
       .attr('x', d => d.children ? -30 : 30)
       .style('text-anchor', d => d.children ? 'end' : 'start')
-      .style('font-family', this.config.theme.fontFamily || 'Arial, sans-serif')
+      .style('font-family', this.config.theme.fontFamily)
       .style('font-size', `${this.config.theme.fontSize}px`)
-      .style('fill', this.config.theme.textColor || '#2d3748')
+      .style('fill', this.config.theme.textColor)
+      .text(d => d.data.topic);
+
+    // Add interactivity
+    if (this.config.interactive) {
+      nodes.on('click', (event, d) => {
+        this.config.onNodeClick(d.data);
+      });
+
+      nodes.on('mouseover', (event, d) => {
+        this.config.onNodeHover(d.data);
+      });
+    }
+  }
+
+  zoomToFit(): void {
+    if (!this.svg || !this.g) return;
+
+    const bounds = this.g.node()!.getBBox();
+    const fullWidth = this.config.width;
+    const fullHeight = this.config.height;
+    const width = bounds.width;
+    const height = bounds.height;
+    const midX = bounds.x + width / 2;
+    const midY = bounds.y + height / 2;
+
+    if (width === 0 || height === 0) return;
+
+    const scale = 0.9 / Math.max(width / fullWidth, height / fullHeight);
+    const translate = [fullWidth / 2 - scale * midX, fullHeight / 2 - scale * midY];
+
+    const zoom = d3.zoom<SVGSVGElement, unknown>();
+    this.svg
+      .transition()
+      .duration(750)
+      .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+  }
+
+  private renderMindMap(): void {
+    if (!this.g) return;
+
+    // Clear existing content
+    this.g.selectAll('*').remove();
+
+    // Create hierarchy
+    const root = d3.hierarchy(this.data);
+
+    // Create tree layout
+    const treeLayout = d3.tree<MindMapNode>()
+      .size([this.config.height - 100, this.config.width - 200])
+      .separation((a, b) => a.parent === b.parent ? 1 : 2);
+
+    // Generate tree
+    const treeData = treeLayout(root);
+
+    // Create links
+    const links = this.g.selectAll('.link')
+      .data(treeData.links())
+      .enter()
+      .append('path')
+      .attr('class', 'link')
+      .attr('d', d3.linkHorizontal<any, any>()
+        .x(d => d.y + 100)
+        .y(d => d.x + 50)
+      )
+      .style('fill', 'none')
+      .style('stroke', this.config.theme.linkColor)
+      .style('stroke-width', 2);
+
+    // Create nodes
+    const nodes = this.g.selectAll('.node')
+      .data(treeData.descendants())
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .attr('transform', d => `translate(${d.y + 100},${d.x + 50})`)
+      .style('cursor', this.config.interactive ? 'pointer' : 'default');
+
+    // Add node circles
+    nodes.append('circle')
+      .attr('r', 25)
+      .style('fill', this.config.theme.nodeColor)
+      .style('stroke', '#fff')
+      .style('stroke-width', 3);
+
+    // Add node labels
+    nodes.append('text')
+      .attr('dy', '.35em')
+      .attr('x', d => d.children ? -30 : 30)
+      .style('text-anchor', d => d.children ? 'end' : 'start')
+      .style('font-family', this.config.theme.fontFamily)
+      .style('font-size', `${this.config.theme.fontSize}px`)
+      .style('fill', this.config.theme.textColor)
       .text(d => d.data.topic);
 
     // Add interactivity

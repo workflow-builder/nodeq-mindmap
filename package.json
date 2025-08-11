@@ -1,13 +1,13 @@
 {
   "name": "nodeq-mindmap",
-  "version": "2.0.0",
-  "description": "A revolutionary library combining interactive mind map visualization with ML-powered data pipeline building",
+  "version": "1.1.0",
+  "description": "A revolutionary lightweight library that combines interactive mind map visualization with intelligent data pipeline building using ML analysis",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "nodeq-mindmap": "dist/cli.js"
+    "nodeq-mindmap": "./dist/cli.js"
   },
   "files": [
     "dist",
@@ -40,7 +40,9 @@
     "tensorflow",
     "data-transformation",
     "pipeline-builder",
-    "cli-tool"
+    "iot",
+    "kafka",
+    "real-time-processing"
   ],
   "author": "NODEQ Team",
   "license": "MIT",
