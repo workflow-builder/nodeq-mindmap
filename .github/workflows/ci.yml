@@ -122,7 +122,9 @@ jobs:
       - name: Create Pages content
         run: |
           mkdir -p _site
-          cp -r examples/* _site/
+          if [ -d "examples" ]; then
+            cp -r examples/* _site/
+          fi
           cp -r dist _site/
           cp README.md _site/
 
