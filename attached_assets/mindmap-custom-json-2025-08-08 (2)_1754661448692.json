@@ -1,0 +1,37 @@
+{
+  "domain": "Custom JSON",
+  "lastUpdated": "2025-08-08T13:56:33.809Z",
+  "source": [
+    "User Upload"
+  ],
+  "mindMap": {
+    "topic": "Current Binary architecture",
+    "summary": "Sample organizational chart - modify this structure and upload back to create your custom mind map",
+    "children": [
+      {
+        "topic": "input json",
+        "summary": "Executive leadership",
+        "skills": [
+          "Leadership",
+          "Strategy",
+          "Decision Making"
+        ],
+        "children": [
+          {
+            "topic": "ouput node graph or mindmap",
+            "summary": "Chief Executive Officer",
+            "skills": [
+              "Vision",
+              "Leadership",
+              "Communication"
+            ],
+            "children": []
+          }
+        ]
+      }
+    ],
+    "skills": []
+  },
+  "exportedAt": "2025-08-08T13:56:37.407Z",
+  "version": "1.0"
+}

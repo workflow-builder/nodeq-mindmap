@@ -1,54 +1,72 @@
 {
   "name": "nodeq-mindmap",
-  "version": "1.1.0",
-  "description": "A lightweight, interactive mind map visualization library for hierarchical data structures with JSON schema adapter",
-  "type": "module",
+  "version": "2.0.0",
+  "description": "Enhanced mind map visualization library with ML-powered data pipeline capabilities",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
+  "browser": "dist/index.umd.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "nodeq-mindmap": "dist/cli.js"
+  },
   "files": [
-    "dist",
+    "dist/**/*",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "echo \"No tests specified yet\"",
+    "test": "echo 'Tests will be added in future versions' && exit 0",
+    "lint": "echo 'Linting will be added in future versions' && exit 0",
+    "type-check": "tsc --noEmit",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/workflow-builder/nodeq-mindmap.git"
   },
   "keywords": [
     "mindmap",
     "visualization",
     "d3",
+    "data-pipeline",
+    "machine-learning",
+    "typescript",
     "interactive",
-    "hierarchical-data",
-    "tree-visualization",
-    "data-visualization",
-    "json-to-mindmap",
-    "schema-adapter",
-    "data-pipeline"
+    "svg",
+    "cli"
   ],
   "author": "NODEQ Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/workflow-builder/nodeq-mindmap.git"
+  },
+  "homepage": "https://workflow-builder.github.io/nodeq-mindmap",
+  "bugs": {
+    "url": "https://github.com/workflow-builder/nodeq-mindmap/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "peerDependencies": {
     "d3": "^7.0.0"
   },
-  "devDependencies": {
-    "@rollup/plugin-typescript": "^11.1.6",
-    "@types/d3": "^7.4.3",
-    "rollup": "^4.12.0",
-    "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
-  },
   "dependencies": {
-    "@tensorflow/tfjs": "^4.22.0",
-    "commander": "^14.0.0",
-    "d3": "^7.0.0",
-    "nodeq-mindmap": "^1.0.0"
+    "d3": "^7.9.0",
+    "@tensorflow/tfjs": "^4.21.0",
+    "jsdom": "^25.0.1",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2",
+    "rollup": "^4.22.4",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "tslib": "^2.7.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

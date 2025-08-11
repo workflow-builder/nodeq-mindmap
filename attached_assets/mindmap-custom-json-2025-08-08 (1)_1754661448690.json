@@ -1,0 +1,69 @@
+{
+  "domain": "Custom JSON",
+  "lastUpdated": "2025-08-08T13:55:32.908Z",
+  "source": [
+    "User Upload"
+  ],
+  "mindMap": {
+    "topic": "Future Binary architecture",
+    "summary": "Sample organizational chart - modify this structure and upload back to create your custom mind map",
+    "children": [
+      {
+        "topic": "Config",
+        "summary": "Executive leadership",
+        "skills": [
+          "Leadership",
+          "Strategy",
+          "Decision Making"
+        ],
+        "children": [
+          {
+            "topic": "input sample data",
+            "summary": "Chief Executive Officer",
+            "skills": [
+              "Vision",
+              "Leadership",
+              "Communication"
+            ],
+            "children": []
+          },
+          {
+            "topic": "output sample data",
+            "summary": "Chief Technology Officer",
+            "skills": [
+              "Technology Strategy",
+              "Innovation",
+              "Team Building"
+            ],
+            "children": []
+          }
+        ]
+      },
+      {
+        "topic": "Pipeline",
+        "summary": "Software development group",
+        "skills": [
+          "Programming",
+          "Testing",
+          "Deployment"
+        ],
+        "children": [
+          {
+            "topic": "Pipeline",
+            "summary": "User interface developers",
+            "skills": [
+              "React",
+              "CSS",
+              "JavaScript",
+              "UI/UX"
+            ],
+            "children": []
+          }
+        ]
+      }
+    ],
+    "skills": []
+  },
+  "exportedAt": "2025-08-08T13:55:46.223Z",
+  "version": "1.0"
+}

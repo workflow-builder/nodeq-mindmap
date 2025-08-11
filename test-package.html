@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeQ MindMap Package Test</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #mindmap {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .controls {
+            margin: 10px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .json-input {
+            width: 100%;
+            height: 120px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 NodeQ MindMap Package Verification</h1>
+        
+        <div class="test-section">
+            <h2>📦 Package Loading Test</h2>
+            <div id="loadStatus" class="status">Loading package...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>🌐 Basic Mind Map Rendering</h2>
+            <div id="mindmap"></div>
+            <div class="controls">
+                <button onclick="renderSampleMindMap()">🎯 Render Sample</button>
+                <button onclick="updateTheme()">🎨 Update Theme</button>
+                <button onclick="exportSVG()">📤 Export SVG</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔄 JSON Schema Adapter Test</h2>
+            <textarea class="json-input" id="jsonInput" placeholder="Enter your JSON data here...">
+{
+  "name": "E-commerce Platform",
+  "description": "Complete online store solution",
+  "categories": ["web", "commerce", "api"],
+  "features": [
+    {
+      "title": "Product Management",
+      "details": "Inventory and catalog system",
+      "skills": ["React", "Node.js", "MongoDB"]
+    },
+    {
+      "title": "Payment Processing", 
+      "details": "Secure payment gateway integration",
+      "skills": ["Stripe", "PayPal", "Security"]
+    }
+  ]
+}
+            </textarea>
+            <div class="controls">
+                <button onclick="testJsonAdapter()">🔍 Convert JSON</button>
+                <button onclick="renderCustomData()">🎯 Render Custom</button>
+            </div>
+            <div id="adapterResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>⚙️ Pipeline Engine Test</h2>
+            <div class="controls">
+                <button onclick="testPipelineEngine()">🚀 Create Pipeline</button>
+                <button onclick="executePipeline()">▶️ Execute Pipeline</button>
+                <button onclick="getPipelineStats()">📊 Get Stats</button>
+            </div>
+            <div id="pipelineResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>✅ Functionality Summary</h2>
+            <div id="testResults">
+                <p>Click the test buttons above to verify package functionality.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { NodeQMindMap, JsonSchemaAdapter, PipelineEngine } from './dist/index.esm.js';
+        
+        // Make classes available globally for testing
+        window.NodeQMindMap = NodeQMindMap;
+        window.JsonSchemaAdapter = JsonSchemaAdapter;
+        window.PipelineEngine = PipelineEngine;
+        
+        let mindMap = null;
+        let pipelineEngine = null;
+        
+        // Update load status
+        document.getElementById('loadStatus').innerHTML = '✅ Package loaded successfully!';
+        
+        // Sample data for testing
+        const sampleData = {
+            topic: "NodeQ Package Demo",
+            summary: "Testing the core functionality",
+            skills: ["D3.js", "TypeScript", "Mind Maps"],
+            children: [
+                {
+                    topic: "Visualization",
+                    summary: "Interactive SVG rendering",
+                    skills: ["SVG", "D3", "Interaction"]
+                },
+                {
+                    topic: "Data Processing",
+                    summary: "JSON schema adaptation",
+                    skills: ["JSON", "Schema", "Transformation"]
+                }
+            ]
+        };
+        
+        window.renderSampleMindMap = function() {
+            mindMap = new NodeQMindMap({
+                container: '#mindmap',
+                data: sampleData,
+                width: 800,
+                height: 400,
+                theme: {
+                    nodeColor: '#4299e1',
+                    textColor: '#2d3748',
+                    linkColor: '#a0aec0',
+                    backgroundColor: '#ffffff'
+                }
+            });
+            mindMap.render();
+            updateResults('✅ Basic mind map rendered successfully');
+        };
+        
+        window.updateTheme = function() {
+            if (!mindMap) {
+                alert('Please render a mind map first');
+                return;
+            }
+            mindMap.updateTheme({
+                nodeColor: '#e53e3e',
+                textColor: '#1a202c',
+                linkColor: '#4299e1'
+            });
+            updateResults('✅ Theme updated successfully');
+        };
+        
+        window.exportSVG = function() {
+            if (!mindMap) {
+                alert('Please render a mind map first');
+                return;
+            }
+            const svg = mindMap.exportSVG();
+            console.log('Exported SVG:', svg);
+            updateResults('✅ SVG exported successfully (check console)');
+        };
+        
+        window.testJsonAdapter = function() {
+            const jsonInput = document.getElementById('jsonInput').value;
+            try {
+                const inputData = JSON.parse(jsonInput);
+                const converted = JsonSchemaAdapter.convertToStandard(inputData);
+                document.getElementById('adapterResult').innerHTML = 
+                    '<pre>' + JSON.stringify(converted, null, 2) + '</pre>';
+                updateResults('✅ JSON Schema Adapter working correctly');
+            } catch (error) {
+                document.getElementById('adapterResult').innerHTML = 
+                    '<div style="color: red;">Error: ' + error.message + '</div>';
+            }
+        };
+        
+        window.renderCustomData = function() {
+            const jsonInput = document.getElementById('jsonInput').value;
+            try {
+                const inputData = JSON.parse(jsonInput);
+                const converted = JsonSchemaAdapter.convertToStandard(inputData);
+                
+                mindMap = new NodeQMindMap({
+                    container: '#mindmap',
+                    data: converted,
+                    width: 800,
+                    height: 400
+                });
+                mindMap.render();
+                updateResults('✅ Custom JSON data rendered as mind map');
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        };
+        
+        window.testPipelineEngine = function() {
+            pipelineEngine = new PipelineEngine();
+            
+            const inputSample = {
+                format: 'json',
+                schema: { name: 'string', age: 'number' },
+                data: { name: 'John', age: 30 }
+            };
+            
+            const outputSample = {
+                format: 'json',
+                schema: { fullName: 'string', category: 'string' },
+                data: { fullName: 'John Doe', category: 'adult' }
+            };
+            
+            pipelineEngine.createPipeline('Test Pipeline', inputSample, outputSample)
+                .then(pipeline => {
+                    document.getElementById('pipelineResult').innerHTML = 
+                        '<pre>' + JSON.stringify(pipeline, null, 2) + '</pre>';
+                    updateResults('✅ Pipeline Engine created pipeline successfully');
+                })
+                .catch(error => {
+                    document.getElementById('pipelineResult').innerHTML = 
+                        '<div style="color: red;">Error: ' + error.message + '</div>';
+                });
+        };
+        
+        window.executePipeline = function() {
+            if (!pipelineEngine) {
+                alert('Please create a pipeline first');
+                return;
+            }
+            
+            const pipelines = pipelineEngine.getAllPipelines();
+            if (pipelines.length === 0) {
+                alert('No pipelines available');
+                return;
+            }
+            
+            const result = pipelineEngine.executePipeline(pipelines[0].id, { name: 'Jane', age: 25 });
+            document.getElementById('pipelineResult').innerHTML = 
+                '<h4>Execution Result:</h4><pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            updateResults('✅ Pipeline executed successfully');
+        };
+        
+        window.getPipelineStats = function() {
+            if (!pipelineEngine) {
+                alert('Please create a pipeline first');
+                return;
+            }
+            
+            const pipelines = pipelineEngine.getAllPipelines();
+            if (pipelines.length === 0) {
+                alert('No pipelines available');
+                return;
+            }
+            
+            const stats = pipelineEngine.getPipelineStats(pipelines[0].id);
+            document.getElementById('pipelineResult').innerHTML = 
+                '<h4>Pipeline Stats:</h4><pre>' + JSON.stringify(stats, null, 2) + '</pre>';
+            updateResults('✅ Pipeline stats retrieved successfully');
+        };
+        
+        function updateResults(message) {
+            const results = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<p>[${timestamp}] ${message}</p>`;
+        }
+        
+        // Auto-render sample on load
+        setTimeout(() => {
+            renderSampleMindMap();
+        }, 500);
+        
+    </script>
+</body>
+</html>
