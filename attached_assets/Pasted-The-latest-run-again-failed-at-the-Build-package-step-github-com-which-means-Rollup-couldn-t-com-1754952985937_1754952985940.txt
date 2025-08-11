@@ -1,0 +1,84 @@
+The latest run again failed at the “Build package” step
+github.com
+, which means Rollup couldn’t complete the TypeScript build. At this point the Rollup configuration is no longer the problem; the remaining errors come from TypeScript compilation itself. Looking at the source files as of commit 23b80bb, there are a few invalid generic usages that will cause the TypeScript compiler to exit with an error:
+
+In src/index.ts, the NodeQConfig type and updateTheme method use Partial without a type parameter:
+
+ts
+Copy
+Edit
+export interface NodeQConfig {
+  …
+  theme?: Partial ;           // missing type argument
+  …
+}
+
+export class NodeQMindMap {
+  …
+  updateTheme(theme: Partial ): void { // missing type argument
+    …
+  }
+}
+Partial is a generic utility type that requires one type argument. Without it, the compiler throws “Generic type ‘Partial<T>’ requires 1 type argument(s)”.
+
+In src/mindmap.ts, similar problems occur:
+
+ts
+Copy
+Edit
+private config: Required ;       // Required<T> missing type argument
+…
+updateTheme(theme: Partial ): void { // again, missing type argument
+  …
+}
+This is invalid TypeScript for the same reason—both Required and Partial must specify the type whose properties should be made required or partial.
+
+These type errors prevent Rollup from emitting any JavaScript, which is why the npm run build step fails.
+
+How to fix the build
+You need to correct the generic usages so the TypeScript compiler can type‑check the sources. You have two options:
+
+Supply the missing type arguments. For example:
+
+ts
+Copy
+Edit
+// src/index.ts
+export interface NodeQConfig {
+  …
+  theme?: Partial<Theme>;
+  …
+}
+
+export class NodeQMindMap {
+  …
+  updateTheme(theme: Partial<Theme>): void {
+    this.config.theme = { …this.config.theme, …theme };
+    this.renderMindMap();
+  }
+}
+
+// src/mindmap.ts
+private config: Required<NodeQConfig>;
+…
+updateTheme(theme: Partial<NodeQConfig['theme']>): void {
+  this.config.theme = { …this.config.theme, …theme };
+  this.renderMindMap();
+}
+This tells TypeScript exactly which type you’re making partial or required, fixing the generic errors.
+
+Avoid Partial/Required altogether. If the generic utility types aren’t providing real value in your compiled JavaScript, you can simplify the code and sidestep the type errors:
+
+ts
+Copy
+Edit
+// src/mindmap.ts
+private config: any;
+…
+updateTheme(theme: any): void {
+  this.config.theme = { …this.config.theme, …theme };
+  this.renderMindMap();
+}
+And in src/index.ts define theme?: Partial<Theme> or even theme?: any. Removing the generics will satisfy the TypeScript compiler and allow the build to proceed.
+
+After making one of these changes, commit the updated index.ts and mindmap.ts files. The TypeScript compiler will no longer error out, and npm run build should succeed. Once the build passes, the workflow will be able to upload the built artifacts and proceed to the publish steps.
