@@ -1,0 +1,83 @@
+The new run shows that the installation step completed successfully (our --ignore‑scripts fix worked) but the job now fails in the Build package step. On GitHub you can see that the annotation is attached to “Build package” and the build command exits with status 1
+github.com
+. In this workflow, Build package is simply:
+
+yaml
+Copy
+Edit
+- name: Build package
+  run: npm run build
+which invokes rollup -c. The failure therefore comes from your Rollup build, not from dependency installation or publishing.
+
+Likely cause
+Your recent commit only partly solved the bundling issue. The CLI build still bundles a number of modules via Rollup. src/cli.ts imports Node built‑in modules (fs, path) and packages like jsdom, @tensorflow/tfjs and d3
+GitHub
+. In the last commit you added these to the external list:
+
+js
+Copy
+Edit
+external: [
+  'commander', 'jsdom', 'fs', 'path',
+  'd3', '@tensorflow/tfjs',
+  'util', 'os', 'crypto', 'stream', 'events',
+  'url', 'https', 'http', 'zlib'
+]
+While this is a good start, it still isn’t sufficient. @tensorflow/tfjs internally requires other built‑ins such as perf_hooks, worker_threads, net, tls and sometimes sub‑modules like fs/promises or stream/web. When Rollup encounters an import to one of these modules and you haven’t marked it as external, it tries to bundle it and fails with errors like “Cannot find module ‘perf_hooks’”. Those errors occur during the build step, which is why npm run build now fails.
+
+Recommended fix
+Rather than maintaining a long, error‑prone list of built‑in modules by hand, let Rollup automatically externalise every Node built‑in and the packages declared in your package.json. You can do this by using Node’s module API:
+
+js
+Copy
+Edit
+// rollup.config.js
+import typescript from '@rollup/plugin-typescript';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import { builtinModules } from 'module';
+import pkg from './package.json' assert { type: 'json' };
+
+const externalDeps = [
+  ...builtinModules,
+  ...builtinModules.map(m => `node:${m}`), // node: specifiers
+  ...Object.keys(pkg.dependencies || {}), // externalise all runtime deps
+];
+
+export default [
+  // library build ...
+  {
+    // ...
+    external: ['d3'], // still externalise d3 for the library bundle
+    // ...
+  },
+  // CLI build
+  {
+    input: 'src/cli.ts',
+    output: {
+      file: 'dist/cli.js',
+      format: 'cjs',
+      banner: '#!/usr/bin/env node',
+    },
+    external: externalDeps,
+    plugins: [
+      nodeResolve({ preferBuiltins: true, browser: false }),
+      commonjs(),
+      typescript(),
+    ],
+  },
+];
+Using builtinModules ensures that every Node built‑in (e.g. fs/promises, perf_hooks, worker_threads) is treated as external, and pulling keys from package.json means any package you depend on (such as jsdom, @tensorflow/tfjs, commander, d3) will not be bundled into the CLI. With this change, Rollup only bundles your own code and TypeScript output and it will not try to bundle heavy or unresolvable modules.
+
+After updating rollup.config.js, commit the change and re‑run the workflow. The “Build package” step should now succeed because Rollup no longer fails to resolve built‑ins. If you still see build errors after this change, an alternative is to bypass Rollup entirely for the CLI and simply compile it with the TypeScript compiler:
+
+json
+Copy
+Edit
+"scripts": {
+  "build": "rollup -c",
+  "build:cli": "tsc src/cli.ts --outDir dist --module commonjs"
+}
+and then call npm run build followed by npm run build:cli in your workflow.
+
+By externalising all built‑ins or by switching the CLI to plain TypeScript compilation, the workflow will build your binary cleanly and allow the subsequent steps (uploading artifacts and publishing) to complete.
