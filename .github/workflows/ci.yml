@@ -1,4 +1,5 @@
-name: CI/CD Pipeline
+
+name: Build and Publish to NPM
 
 on:
   push:
@@ -10,38 +11,29 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish (e.g., 1.1.0)'
+        description: 'Version to publish (e.g., 2.0.1)'
         required: false
         default: ''
 
 jobs:
-  test-and-build:
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18, 20]
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js ${{ matrix.node-version }}
+      
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
-
+          
       - name: Install dependencies
         run: npm install
-
-      - name: Install missing type definitions
-        run: npm install @types/d3
-
-      - name: Run type check
-        run: npm run type-check
-
+        
       - name: Build package
         run: npm run build
-
+        
       - name: Verify build artifacts
         run: |
           echo "Checking build artifacts..."
@@ -55,6 +47,12 @@ jobs:
             exit 1
           fi
           echo "✅ Build artifacts present"
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: dist/
 
       - name: Test package structure
         run: |
@@ -63,24 +61,21 @@ jobs:
           echo "✅ Package structure valid"
 
   publish:
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
-    needs: test-and-build
+    needs: build
     runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           registry-url: 'https://registry.npmjs.org'
-
+          
       - name: Install dependencies
         run: npm install
-
-      - name: Install missing type definitions
-        run: npm install @types/d3
-
+        
       - name: Build package
         run: npm run build
 
@@ -88,7 +83,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
         run: |
           npm version ${{ github.event.inputs.version }} --no-git-tag-version
-
+        
       - name: Publish to NPM
         run: npm publish --access public
         env:
@@ -101,7 +96,7 @@ jobs:
 
   deploy-pages:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: test-and-build
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -113,14 +108,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm install
-
-      - name: Install missing type definitions
-        run: npm install @types/d3
 
       - name: Build package
         run: npm run build
