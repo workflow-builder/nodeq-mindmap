@@ -46,7 +46,14 @@ export default [
       format: 'cjs',
       banner: '#!/usr/bin/env node'
     },
-    external: ['commander', 'jsdom', 'fs', 'path', 'd3', '@tensorflow/tfjs', 'util', 'os', 'crypto', 'stream', 'events', 'url', 'https', 'http', 'zlib'],
+    external: (id) => {
+      // Mark Node.js built-ins as external
+      if (id.startsWith('node:') || ['fs', 'path', 'util', 'os', 'crypto', 'stream', 'events', 'url', 'https', 'http', 'zlib'].includes(id)) {
+        return true;
+      }
+      // Mark npm packages as external
+      return ['commander', 'jsdom', 'd3', '@tensorflow/tfjs'].includes(id);
+    },
     plugins: [
       nodeResolve({
         preferBuiltins: true,
