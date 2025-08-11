@@ -1,18 +1,26 @@
 
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.1.0)'
+        required: false
+        default: ''
 
 jobs:
-  test:
+  test-and-build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [18, 20]
         
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +32,10 @@ jobs:
           cache: 'npm'
           
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        
+      - name: Install missing type definitions
+        run: npm install --save-dev @types/d3
         
       - name: Run type check
         run: npm run type-check
@@ -51,3 +62,114 @@ jobs:
           echo "Testing package structure..."
           npm pack --dry-run
           echo "✅ Package structure valid"
+
+  publish:
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Install missing type definitions
+        run: npm install --save-dev @types/d3
+        
+      - name: Build package
+        run: npm run build
+        
+      - name: Update version (if manual trigger)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          
+      - name: Publish to NPM
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create release summary
+        run: |
+          VERSION=${{ github.event.inputs.version || github.event.release.tag_name }}
+          echo "🎉 NodeQ MindMap v${VERSION} published successfully!"
+
+  deploy-pages:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Install missing type definitions
+        run: npm install --save-dev @types/d3
+        
+      - name: Build package
+        run: npm run build
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Create Pages content
+        run: |
+          mkdir -p _site
+          cp -r examples/* _site/
+          cp -r dist _site/
+          cp README.md _site/
+          
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>NodeQ MindMap - Examples</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; }
+                  .example { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+                  a { color: #0066cc; text-decoration: none; }
+                  a:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <h1>NodeQ MindMap Examples</h1>
+              <div class="example">
+                  <h2><a href="basic.html">Basic Example</a></h2>
+                  <p>Simple mind map visualization</p>
+              </div>
+              <div class="example">
+                  <h2><a href="pipeline-demo.html">Pipeline Demo</a></h2>
+                  <p>Advanced pipeline and data processing demo</p>
+              </div>
+              <div class="example">
+                  <h2><a href="https://www.npmjs.com/package/nodeq-mindmap">NPM Package</a></h2>
+                  <p>Install: npm install nodeq-mindmap</p>
+              </div>
+          </body>
+          </html>
+          EOF
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+          
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
