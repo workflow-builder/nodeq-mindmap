@@ -1,3 +1,4 @@
+
 import typescript from '@rollup/plugin-typescript';
 
 export default {
@@ -25,8 +26,7 @@ export default {
   plugins: [
     typescript({
       declaration: true,
-      declarationDir: 'dist',
-      rootDir: 'src'
+      declarationDir: 'dist'
     })
   ]
 };
