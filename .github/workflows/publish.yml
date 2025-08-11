@@ -1,55 +1,48 @@
-name: Build and Publish to NPM
+
+name: Publish to NPM
 
 on:
-  push:
-    branches: [ main ]
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 2.0.0)'
+        required: true
+        default: '2.0.0'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
-          
-      - name: Install dependencies
-        run: npm install
-        
-      - name: Build package
-        run: npm run build
-        
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-files
-          path: dist/
-
   publish:
-    needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
     steps:
       - uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
           
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+        
+      - name: Run type check
+        run: npm run check
         
       - name: Build package
         run: npm run build
         
+      - name: Update version (if manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          
       - name: Publish to NPM
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create release summary
+        run: |
+          echo "🎉 NodeQ MindMap v${{ github.event.inputs.version || github.event.release.tag_name }} published successfully!"
+          echo "📦 Package: https://www.npmjs.com/package/nodeq-mindmap"
