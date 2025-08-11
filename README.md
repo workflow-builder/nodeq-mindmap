@@ -131,7 +131,7 @@ import { NodeQMindMap } from 'nodeq-mindmap';
 
 const MindMapComponent = ({ data }) => {
   const containerRef = useRef(null);
-  
+
   useEffect(() => {
     const mindMap = new NodeQMindMap({
       container: containerRef.current,
@@ -140,7 +140,7 @@ const MindMapComponent = ({ data }) => {
     });
     mindMap.render();
   }, [data]);
-  
+
   return <div ref={containerRef}></div>;
 };
 ```
@@ -1061,153 +1061,15 @@ const pipeline = await mindMap.createDataPipeline(
 
 ## 🏗️ System Architecture
 
-### Core Architecture Overview
+NodeQ MindMap features a sophisticated multi-layered architecture designed for scalability and performance. The system combines interactive visualization, ML-powered pattern recognition, and automated ETL processing.
 
-```mermaid
-graph TB
-    subgraph "🎨 Visualization Layer"
-        A[Interactive Mind Maps]
-        B[Pipeline Monitoring]
-        C[Performance Dashboards]
-    end
+**[📋 View Complete Architecture Documentation](docs/ARCHITECTURE.md)**
 
-    subgraph "🧠 ML Analysis Engine"
-        D[TensorFlow.js Model]
-        E[Hugging Face Integration]
-        F[OpenAI API Support]
-        G[Pattern Recognition]
-        H[Field Mapping Intelligence]
-    end
-
-    subgraph "⚙️ Pipeline Engine"
-        I[ETL Process Automation]
-        J[Stream Processing]
-        K[Data Quality Validation]
-        L[Error Handling]
-    end
-
-    subgraph "🔌 Data Source Connectors"
-        M[IoT Hub]
-        N[Kafka]
-        O[REST APIs]
-        P[WebSockets]
-        Q[MQTT]
-        R[Databases]
-    end
-
-    A --> D
-    B --> I
-    C --> J
-    D --> I
-    E --> G
-    F --> H
-    G --> I
-    H --> J
-    M --> I
-    N --> J
-    O --> I
-    P --> J
-    Q --> I
-    R --> I
-```
-
-### ETL Process Flow
-
-```mermaid
-graph LR
-    subgraph "Data Input"
-        A[IoT Sensors]
-        B[Kafka Streams]
-        C[REST APIs]
-        D[Databases]
-    end
-
-    E[Data Extraction] --> F[Auto Schema Detection]
-    F --> G[ML Pattern Analysis]
-    G --> H[Rule Generation]
-    H --> I[Data Transformation]
-    I --> J[Quality Validation]
-    J --> K[Error Handling]
-    K --> L[Output Processing]
-
-    subgraph "Data Output"
-        M[Analytics DB]
-        N[Real-time Dashboard]
-        O[Alert Systems]
-        P[ML Training Data]
-    end
-
-    A --> E
-    B --> E
-    C --> E
-    D --> E
-
-    L --> M
-    L --> N
-    L --> O
-    L --> P
-```
-
-### ML Model Interaction Lifecycle
-
-```mermaid
-sequenceDiagram
-    participant User as User
-    participant NodeQ as NodeQ Engine
-    participant ML as ML Model
-    participant Pipeline as Compiled Pipeline
-    participant Data as Input Data
-
-    Note over User,Data: Pipeline Creation Phase (ML Active)
-    User->>NodeQ: Create Pipeline (input/output samples)
-    NodeQ->>ML: Initialize Model
-    ML->>ML: Analyze transformation patterns
-    ML->>NodeQ: Generate transformation rules
-    NodeQ->>Pipeline: Compile static execution logic
-    NodeQ->>User: Pipeline ready (ML model no longer needed)
-
-    Note over User,Data: Execution Phase (Static, ML-Free)
-    Data->>Pipeline: Input data
-    Pipeline->>Pipeline: Execute compiled transformations
-    Pipeline->>User: Transformed output (fast, no ML overhead)
-
-    Note over User,Data: Configuration Update Phase (ML Re-activated)
-    User->>NodeQ: Update pipeline config
-    NodeQ->>ML: Re-initialize model
-    ML->>ML: Re-analyze with new samples
-    ML->>NodeQ: Generate updated rules
-    NodeQ->>Pipeline: Recompile static logic
-    NodeQ->>User: Updated pipeline ready
-```
-
-### Static vs Dynamic Execution
-
-```mermaid
-graph TB
-    subgraph "Pipeline Creation (ML Active)"
-        A[Input/Output Samples] --> B[ML Model Analysis]
-        B --> C[Transformation Rules Generated]
-        C --> D[Static Logic Compiled]
-        D --> E[Pipeline Ready]
-    end
-
-    subgraph "Runtime Execution (ML-Free)"
-        F[Incoming Data] --> G[Compiled Transform Function]
-        G --> H[Output Data]
-
-        style G fill:#4caf50,color:#fff
-        style H fill:#4caf50,color:#fff
-    end
-
-    subgraph "Config Changes (ML Re-activated)"
-        I[New Input/Output Format] --> J[ML Re-analysis]
-        J --> K[Updated Rules]
-        K --> L[Recompiled Logic]
-    end
-
-    E -.->|Static Execution| G
-    L -.->|Updated Logic| G
-```
+Key architectural components:
+- **🎨 Visualization Layer**: Interactive mind maps and monitoring dashboards
+- **🧠 ML Analysis Engine**: TensorFlow.js and Hugging Face integration
+- **⚙️ Pipeline Engine**: ETL automation and stream processing  
+- **🔌 Data Connectors**: Support for IoT, Kafka, APIs, and databases
 
 ## 🔄 ETL Process Replacement
 
