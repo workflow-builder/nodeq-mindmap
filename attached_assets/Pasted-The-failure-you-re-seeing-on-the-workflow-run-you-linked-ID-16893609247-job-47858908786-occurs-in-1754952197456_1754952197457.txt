@@ -1,0 +1,33 @@
+The failure you’re seeing on the workflow run you linked (ID 16893609247, job 47858908786) occurs in the build job at the “Install dependencies” step. According to the run details you can see without signing in, the job fails while running npm install and exits with code 1
+github.com
+. Because npm install runs any prepare script after installing packages, it ends up executing your build pipeline (npm run build). In your repository, the prepare script runs rollup -c and builds both the library and CLI. That means any issue in the Rollup configuration or missing dependency breaks the installation step.
+
+The last commit before the failure (“Fix CLI build external dependencies”) modified rollup.config.js to adjust externals for the CLI build. It added Node built‑in modules such as fs, path, os, crypto, stream, events, http, https and zlib to the external array and set browser: false in @rollup/plugin-node-resolve
+GitHub
+. This change ensures that the CLI doesn’t bundle built‑in modules, but if any additional module is imported in your CLI (for example from @tensorflow/tfjs or commander) and not listed as a dependency, Rollup throws an “Cannot resolve module …” error. Because the Rollup process runs during npm install (due to the prepare script), the installation step fails and the job aborts.
+
+How to fix
+Don’t run the build in npm install – add the --ignore-scripts flag so npm install installs dependencies without running prepare. Then run the build in its own step:
+
+yaml
+Copy
+Edit
+- name: Install dependencies
+  run: npm ci --ignore-scripts   # or `npm install --ignore-scripts`
+- name: Build package
+  run: npm run build
+This prevents a build failure from killing the install step.
+
+Verify the Rollup externals – ensure that every package imported in src/cli.ts or its transitive dependencies is either installed or marked as external. After your last commit, the externals list in rollup.config.js includes commander, jsdom, d3 and @tensorflow/tfjs
+GitHub
+. If you add imports that reference other Node modules (for example openai, kafka or canvas), add them to the external array or install them as dependencies.
+
+Lock the Node & NPM versions – the workflow currently uses Node 18. If you depend on features from a newer runtime, change uses: actions/setup-node@v4 to specify the appropriate node-version. You can also add cache: "npm" to speed up dependencies.
+
+Only run npm publish on tagged releases – your publish job currently runs whenever the workflow is dispatched or a release event occurs. Ensure that secrets.NPM_TOKEN is set in your repository for the Publish to NPM step to succeed
+GitHub
+.
+
+Testing locally – to reproduce the failure locally, run npm install in a clean checkout. If it fails, try npm install --ignore-scripts first; then run npm run build. Fix any missing module errors by installing the appropriate packages or declaring them as externals.
+
+By preventing the build from running during dependency installation and ensuring all imported modules are either installed or marked as external, the workflow should be able to install dependencies successfully, build the project, and publish the binary/package without repeatedly failing.
