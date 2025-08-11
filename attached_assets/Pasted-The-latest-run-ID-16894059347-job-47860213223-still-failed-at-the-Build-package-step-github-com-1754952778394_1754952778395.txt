@@ -1,0 +1,77 @@
+The latest run (ID 16894059347, job 47860213223) still failed at the “Build package” step
+github.com
+, even though dependency installation and our previous externalisation fix succeeded. The new commit shows that you changed the Rollup configuration to automatically build an externalDeps array by reading package.json via an ES module import with an assert:
+
+js
+Copy
+Edit
+import { builtinModules } from 'module';
+import pkg from './package.json' assert { type: 'json' };
+
+const externalDeps = [
+  ...builtinModules,
+  ...builtinModules.map(m => `node:${m}`),
+  ...Object.keys(pkg.dependencies || {}),
+];
+…
+export default [ /* configs */ ];
+While this is conceptually correct, Node 18 (used on the GitHub runner) does not support JSON imports with an assert clause by default. When Rollup tries to load your configuration file, Node throws a syntax error such as “Unexpected token ‘assert’” or complains that it cannot load package.json as an ES module. That happens before Rollup even starts bundling, which is why the build step exits with code 1 and there are no further logs.
+
+How to fix
+You have two easy options to avoid using JSON module assertions:
+
+Use createRequire to load package.json:
+
+Replace the JSON import in rollup.config.js with a CommonJS‐style require that works under ESM:
+
+js
+Copy
+Edit
+import typescript from '@rollup/plugin-typescript';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import { builtinModules, createRequire } from 'module';
+
+// Use CommonJS require to read package.json
+const require = createRequire(import.meta.url);
+const pkg = require('./package.json');
+
+const externalDeps = [
+  ...builtinModules,
+  ...builtinModules.map((m) => `node:${m}`),
+  ...Object.keys(pkg.dependencies || {}),
+];
+
+export default [
+  // your library config…
+  {
+    // CLI build
+    input: 'src/cli.ts',
+    output: { file: 'dist/cli.js', format: 'cjs', banner: '#!/usr/bin/env node' },
+    external: externalDeps,
+    plugins: [
+      nodeResolve({ preferBuiltins: true, browser: false }),
+      commonjs(),
+      typescript(),
+    ],
+  },
+];
+createRequire is part of Node’s module API and lets you synchronously load JSON or other CommonJS resources from an ES module context.
+
+Avoid importing package.json altogether:
+
+If you prefer not to depend on package.json, you can hard‑code the dependency list in your configuration and update it when dependencies change. For example:
+
+js
+Copy
+Edit
+import { builtinModules } from 'module';
+const externalDeps = [
+  ...builtinModules,
+  ...builtinModules.map(m => `node:${m}`),
+  'd3', '@tensorflow/tfjs', 'jsdom', 'commander',
+  // add any other npm dependencies here
+];
+This manual list works because your src/cli.ts currently only uses those runtime dependencies.
+
+Either of these fixes removes the unsupported JSON import and will allow rollup -c to execute without syntax errors. Commit one of the above solutions to rollup.config.js and re‑run your workflow. The build step should proceed past the configuration phase, and if any other bundling errors remain (missing imports, etc.), you’ll see them in the logs. Once the build succeeds, the workflow should produce the CLI binary and publish as intended.
