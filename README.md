@@ -6,6 +6,128 @@
 
 A revolutionary lightweight library that combines **interactive mind map visualization** with **intelligent data pipeline building**. Transform JSON data into beautiful mind maps AND create ML-powered data transformation pipelines through simple configuration.
 
+## 🏗️ System Architecture Overview
+
+### Mind Map Visualization Architecture
+
+```mermaid
+flowchart TB
+    subgraph "📄 Data Input"
+        A[JSON Data]
+        B[Nested Objects]
+        C[Arrays & Lists]
+    end
+
+    subgraph "🔄 Processing Engine"
+        D[Schema Detection]
+        E[Node Generation]
+        F[Hierarchy Mapping]
+        G[Layout Calculation]
+    end
+
+    subgraph "🎨 Visualization Layer"
+        H[D3.js Rendering]
+        I[Interactive Nodes]
+        J[Zoom & Pan]
+        K[Theme System]
+    end
+
+    subgraph "👥 User Interaction"
+        L[Click Events]
+        M[Hover Effects]
+        N[Expand/Collapse]
+        O[Export Options]
+    end
+
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+    M --> N
+    N --> O
+
+    classDef input fill:#e3f2fd
+    classDef processing fill:#f3e5f5
+    classDef visual fill:#e8f5e8
+    classDef interaction fill:#fff3e0
+
+    class A,B,C input
+    class D,E,F,G processing
+    class H,I,J,K visual
+    class L,M,N,O interaction
+```
+
+### Data Pipeline Processor Architecture
+
+```mermaid
+flowchart TB
+    subgraph "📥 Input Sources"
+        A[IoT Sensors]
+        B[REST APIs]
+        C[Kafka Streams]
+        D[Databases]
+        E[WebSockets]
+    end
+
+    subgraph "🧠 ML Analysis Engine"
+        F[Pattern Recognition]
+        G[Schema Mapping]
+        H[Rule Generation]
+        I[Transformation Logic]
+    end
+
+    subgraph "⚡ Pipeline Engine"
+        J[Data Validation]
+        K[Static Execution]
+        L[Error Handling]
+        M[Performance Monitoring]
+    end
+
+    subgraph "📤 Output Destinations"
+        N[Analytics DB]
+        O[Real-time Dashboard]
+        P[Alert Systems]
+        Q[ML Training Data]
+    end
+
+    A -.->|Stream| F
+    B -.->|Poll| F
+    C -.->|Subscribe| F
+    D -.->|CDC| F
+    E -.->|Live| F
+
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+
+    M --> N
+    M --> O
+    M --> P
+    M --> Q
+
+    classDef sources fill:#ffebee
+    classDef ml fill:#e8eaf6
+    classDef pipeline fill:#e0f2f1
+    classDef outputs fill:#fafafa
+
+    class A,B,C,D,E sources
+    class F,G,H,I ml
+    class J,K,L,M pipeline
+    class N,O,P,Q outputs
+```
+
 ## 🚀 What's New in v2.1.0
 
 ✨ **Enhanced Pipeline Engine** with ML-powered data transformation  
@@ -1804,24 +1926,7 @@ Automatically detects and handles:
 - Date format conversions
 - Calculated fields
 
-## 🚀 Deployment on Replit
 
-Deploy your pipeline-powered application on Replit:
-
-1. **Import Project**: Upload your NodeQ project to Replit
-2. **Install Dependencies**: Run `npm install` 
-3. **Configure Port**: Use port 5000 for web applications
-4. **Deploy**: Use Replit's deployment feature to publish your app
-5. **Share**: Get a public URL for your pipeline builder
-
-### Replit Configuration
-
-```javascript
-// Use 0.0.0.0 for public access
-const server = app.listen(5000, '0.0.0.0', () => {
-  console.log('Pipeline Builder running on port 5000');
-});
-```
 
 ## 🔬 Advanced Pipeline Features
 
