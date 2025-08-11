@@ -2,7 +2,6 @@
   "name": "nodeq-mindmap",
   "version": "2.0.0",
   "description": "Enhanced mind map visualization library with ML-powered data pipeline capabilities",
-  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
@@ -17,8 +16,8 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
+    "build": "rollup -c rollup.config.mjs",
+    "dev": "rollup -c rollup.config.mjs -w",
     "type-check": "tsc --noEmit",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo 'Linting will be added in future versions' && exit 0",
