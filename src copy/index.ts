@@ -336,6 +336,21 @@ export class NodeQMindMap {
 
   private pipelineToMindMap(pipeline: PipelineConfig): MindMapNode {
     const children: MindMapNode[] = [];
+    
+    // Execution Mode Node
+    const executionMode = this.pipelineEngine.getPipelineExecutionMode(pipeline.id);
+    const isStatic = this.pipelineEngine.isPipelineStatic(pipeline.id);
+    
+    children.push({
+      topic: 'Execution Mode',
+      summary: isStatic ? 'Static compiled execution (ML-free)' : 'Dynamic execution',
+      skills: [
+        `Mode: ${executionMode.toUpperCase()}`,
+        `ML Model: ${isStatic ? 'Not required during execution' : 'Active during execution'}`,
+        `Performance: ${isStatic ? 'Optimized for speed' : 'Flexible but slower'}`
+      ],
+      children: []
+    });
 
     // Data Sources Node
     if (pipeline.dataSources && pipeline.dataSources.length > 0) {
@@ -369,10 +384,12 @@ export class NodeQMindMap {
 
     // ML Model Configuration
     children.push({
-      topic: 'ML Model',
-      summary: `${pipeline.modelConfig.type} model`,
+      topic: 'ML Analysis',
+      summary: `${pipeline.modelConfig.type} model (used during creation only)`,
       skills: [
         `Type: ${pipeline.modelConfig.type}`,
+        `Usage: Creation & Config changes only`,
+        `Execution: Static compiled logic`,
         `Version: ${pipeline.version}`,
         ...(pipeline.modelConfig.modelName ? [`Model: ${pipeline.modelConfig.modelName}`] : [])
       ],
