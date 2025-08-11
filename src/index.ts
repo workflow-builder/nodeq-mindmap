@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { PipelineEngine } from './pipeline-engine';
+import { JsonSchemaAdapter } from './mindmap';
 import type { DataSample, PipelineConfig } from './types';
 
 export interface MindMapNode {
@@ -37,37 +38,7 @@ export interface NodeQConfig {
   onDataTransformed?: (result: any) => void;
 }
 
-export class JsonSchemaAdapter {
-  static convertToStandard(data: any): MindMapNode {
-    if (!data || typeof data !== 'object') {
-      return { topic: 'Invalid Data', summary: 'Unable to process data' };
-    }
-    const root: MindMapNode = {
-      topic: data.topic || data.title || data.name || 'Root',
-      summary: data.summary || data.description || undefined,
-      skills: Array.isArray(data.skills) ? data.skills : undefined,
-      children: []
-    };
-    const entries = Object.entries(data).filter(([k]) => !['topic','title','name','summary','description','skills','children'].includes(k));
-    for (const [key, value] of entries) {
-      if (value && typeof value === 'object') {
-        root.children!.push({
-          topic: key,
-          summary: Array.isArray(value) ? `${value.length} item(s)` : undefined,
-          children: Array.isArray(value)
-            ? value.slice(0, 20).map((v, i) => typeof v === 'object' ? { topic: `${key}[${i}]`, children: [this.convertToStandard(v)] } : { topic: String(v) })
-            : [this.convertToStandard(value)]
-        });
-      } else {
-        root.children!.push({ topic: `${key}: ${String(value)}` });
-      }
-    }
-    if (Array.isArray((data as any).children)) {
-      root.children!.push(...(data as any).children.map((c: any) => this.convertToStandard(c)));
-    }
-    return root;
-  }
-}
+import { JsonSchemaAdapter } from './mindmap';
 
 type InternalConfig = {
   container: string | HTMLElement;

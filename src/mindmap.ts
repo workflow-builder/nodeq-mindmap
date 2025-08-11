@@ -1,172 +1,57 @@
-import * as d3 from 'd3';
-import { MindMapNode, NodeQConfig, Theme } from './types';
-import { JsonSchemaAdapter } from './json-adapter';
+import { MindMapNode } from './types';
 
-export class NodeQMindMap {
-  private config: Required<NodeQConfig>;
-  private svg: d3.Selection<SVGSVGElement, unknown, null, undefined> | null = null;
-  private g: d3.Selection<SVGGElement, unknown, null, undefined> | null = null;
-  private data: MindMapNode;
-  private container: HTMLElement;
+export class JsonSchemaAdapter {
+  static convertToStandard(data: any): MindMapNode {
+    if (!data || typeof data !== 'object') {
+      return {
+        topic: 'Invalid Data',
+        summary: 'Unable to process the provided data',
+        skills: ['error']
+      };
+    }
 
-  constructor(config: NodeQConfig) {
-    this.config = {
-      container: config.container,
-      data: config.data,
-      width: config.width || 800,
-      height: config.height || 600,
-      theme: {
-        nodeColor: '#4299e1',
-        textColor: '#2d3748',
-        linkColor: '#a0aec0',
-        backgroundColor: '#ffffff',
-        fontSize: 14,
-        fontFamily: 'Arial, sans-serif',
-        ...config.theme
-      },
-      interactive: config.interactive !== undefined ? config.interactive : true,
-      zoomable: config.zoomable !== undefined ? config.zoomable : true,
-      collapsible: config.collapsible !== undefined ? config.collapsible : true,
-      nodeSpacing: config.nodeSpacing || 200,
-      levelSpacing: config.levelSpacing || 300,
-      onNodeClick: config.onNodeClick || (() => {}),
-      onNodeHover: config.onNodeHover || (() => {})
+    // Extract basic properties
+    const topic = data.topic || data.title || data.name || data.label || 'Unnamed Node';
+    const summary = data.summary || data.description || data.details || undefined;
+    const skills = this.extractSkills(data);
+    const children = this.extractChildren(data);
+
+    const result: MindMapNode = {
+      topic,
+      summary,
+      skills,
+      children: children ? children.map(child => this.convertToStandard(child)) : undefined
     };
 
-    // Get container element
-    if (typeof this.config.container === 'string') {
-      const element = document.querySelector(this.config.container);
-      if (!element) {
-        throw new Error(`Container element not found: ${this.config.container}`);
+    // Add any additional properties
+    const excludedKeys = ['topic', 'title', 'name', 'label', 'summary', 'description', 'details', 'skills', 'tags', 'categories', 'keywords', 'attributes', 'children', 'items', 'nodes', 'subitems', 'elements', 'branches'];
+
+    Object.keys(data).forEach(key => {
+      if (!excludedKeys.includes(key)) {
+        result[key] = data[key];
       }
-      this.container = element as HTMLElement;
-    } else {
-      this.container = this.config.container;
+    });
+
+    return result;
+  }
+
+  private static extractSkills(obj: any): string[] | undefined {
+    const skillFields = ['skills', 'tags', 'categories', 'keywords', 'attributes'];
+    for (const field of skillFields) {
+      if (Array.isArray(obj[field])) {
+        return obj[field].filter((item: any) => typeof item === 'string');
+      }
     }
-
-    // Convert data to standard format
-    this.data = JsonSchemaAdapter.convertToStandard(this.config.data);
+    return undefined;
   }
 
-  render(): void {
-    this.createSVG();
-    this.renderMindMap();
-  }
-
-  updateData(data: any): void {
-    this.config.data = data;
-    this.data = JsonSchemaAdapter.convertToStandard(data);
-    this.renderMindMap();
-  }
-
-  updateTheme(theme: Partial<Theme>): void {
-    this.config.theme = { ...this.config.theme, ...theme };
-    this.renderMindMap();
-  }
-
-  exportSVG(): string {
-    if (!this.svg) return '';
-    return new XMLSerializer().serializeToString(this.svg.node()!);
-  }
-
-  destroy(): void {
-    if (this.svg) {
-      this.svg.remove();
+  private static extractChildren(obj: any): any[] | undefined {
+    const childFields = ['children', 'items', 'nodes', 'subitems', 'elements', 'branches'];
+    for (const field of childFields) {
+      if (Array.isArray(obj[field])) {
+        return obj[field];
+      }
     }
-  }
-
-  private createSVG(): void {
-    // Clear existing content
-    d3.select(this.container).selectAll('*').remove();
-
-    // Create SVG
-    this.svg = d3.select(this.container)
-      .append('svg')
-      .attr('width', this.config.width)
-      .attr('height', this.config.height)
-      .style('background-color', this.config.theme.backgroundColor || '#ffffff');
-
-    // Create main group for zooming/panning
-    this.g = this.svg.append('g');
-
-    // Add zoom behavior if enabled
-    if (this.config.zoomable) {
-      const zoom = d3.zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.1, 3])
-        .on('zoom', (event) => {
-          this.g!.attr('transform', event.transform);
-        });
-
-      this.svg.call(zoom);
-    }
-  }
-
-  private renderMindMap(): void {
-    if (!this.g) return;
-
-    // Clear existing content
-    this.g.selectAll('*').remove();
-
-    // Create hierarchy
-    const root = d3.hierarchy(this.data);
-
-    // Create tree layout
-    const treeLayout = d3.tree<MindMapNode>()
-      .size([this.config.height - 100, this.config.width - 200])
-      .separation((a, b) => a.parent === b.parent ? 1 : 2);
-
-    // Generate tree
-    const treeData = treeLayout(root);
-
-    // Create links
-    this.g.selectAll('.link')
-      .data(treeData.links())
-      .enter()
-      .append('path')
-      .attr('class', 'link')
-      .attr('d', d3.linkHorizontal<any, any>()
-        .x(d => d.y + 100)
-        .y(d => d.x + 50)
-      )
-      .style('fill', 'none')
-      .style('stroke', this.config.theme.linkColor || '#a0aec0')
-      .style('stroke-width', 2);
-
-    // Create nodes
-    const nodes = this.g.selectAll('.node')
-      .data(treeData.descendants())
-      .enter()
-      .append('g')
-      .attr('class', 'node')
-      .attr('transform', d => `translate(${d.y + 100},${d.x + 50})`);
-
-    // Add node circles
-    nodes.append('circle')
-      .attr('r', 8)
-      .style('fill', this.config.theme.nodeColor || '#4299e1')
-      .style('stroke', '#fff')
-      .style('stroke-width', 2);
-
-    // Add node labels
-    nodes.append('text')
-      .attr('dy', '.35em')
-      .attr('x', d => d.children ? -13 : 13)
-      .style('text-anchor', d => d.children ? 'end' : 'start')
-      .style('font-family', this.config.theme.fontFamily || 'Arial, sans-serif')
-      .style('font-size', `${this.config.theme.fontSize || 14}px`)
-      .style('fill', this.config.theme.textColor || '#2d3748')
-      .text(d => d.data.topic);
-
-    // Add interactivity
-    if (this.config.interactive) {
-      nodes
-        .style('cursor', 'pointer')
-        .on('click', (event, d) => {
-          this.config.onNodeClick(d.data);
-        })
-        .on('mouseover', (event, d) => {
-          this.config.onNodeHover(d.data);
-        });
-    }
+    return undefined;
   }
 }
