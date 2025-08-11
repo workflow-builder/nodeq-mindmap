@@ -46,10 +46,11 @@ export default [
       format: 'cjs',
       banner: '#!/usr/bin/env node'
     },
-    external: ['commander', 'jsdom', 'fs', 'path'],
+    external: ['commander', 'jsdom', 'fs', 'path', 'd3', '@tensorflow/tfjs', 'util', 'os', 'crypto', 'stream', 'events', 'url', 'https', 'http', 'zlib'],
     plugins: [
       nodeResolve({
-        preferBuiltins: true
+        preferBuiltins: true,
+        browser: false
       }),
       commonjs(),
       typescript()
