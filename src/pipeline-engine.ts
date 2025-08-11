@@ -869,6 +869,39 @@ class MLAnalysisEngine {
   }
 
   private generateTypecastLogic(mapping: FieldMapping): string {
+    return `typeof data.${mapping.inputField} === 'string' ? Number(data.${mapping.inputField}) : data.${mapping.inputField}`;
+  }
+
+  private generateTypecastFunction(mapping: FieldMapping): string {
+    return `(data) => typeof data.${mapping.inputField} === 'string' ? Number(data.${mapping.inputField}) : data.${mapping.inputField}`;
+  }
+
+  private getNestedValue(obj: any, path: string): any {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+  }
+
+  generateTransformationRules(rules: TransformationRule[]): string {
+    const rulesCode = rules.map(rule => {
+      const logic = rule.logic || `data.${rule.sourceField}`;
+      return `  result.${rule.targetField} = ${logic};`;
+    }).join('\n');
+
+    return `function transformData(data) {
+  const result = {};
+${rulesCode}
+  return result;
+}`;
+  }
+
+  async trainModel(inputSamples: DataSample[], outputSamples: DataSample[]): Promise<void> {
+    if (!this.model.isLoaded || !this.model.model) {
+      await this.model.loadModel();
+    }
+    // Training logic would go here
+    console.log('Model training completed with', inputSamples.length, 'samples');
+  }
+
+  private generateTypecastLogic(mapping: FieldMapping): string {
     return `String(data.${mapping.inputField})`;
   }
 

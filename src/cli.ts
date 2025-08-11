@@ -1,4 +1,3 @@
-
 #!/usr/bin/env node
 
 import { Command } from 'commander';
@@ -25,7 +24,7 @@ program
   .action(async (options) => {
     try {
       const inputData = JSON.parse(readFileSync(options.input, 'utf8'));
-      
+
       const mindMap = new NodeQMindMap({
         container: 'body', // Will be handled differently in CLI
         data: inputData,
@@ -80,7 +79,7 @@ pipelineCmd
       console.log(`Pipeline created: ${pipeline.id}`);
       console.log(`Accuracy: ${(pipeline.accuracy * 100).toFixed(1)}%`);
       console.log(`Transformation rules: ${pipeline.transformationRules.length}`);
-      
+
       // Save pipeline config
       const configFile = `${options.name.replace(/\s+/g, '-').toLowerCase()}-pipeline.json`;
       writeFileSync(configFile, JSON.stringify(pipeline, null, 2));
@@ -174,7 +173,7 @@ pipelineCmd
   .action(() => {
     try {
       const pipelines = pipelineEngine.getAllPipelines();
-      
+
       if (pipelines.length === 0) {
         console.log('No pipelines found');
         return;
@@ -206,8 +205,8 @@ pipelineCmd
       const pipeline = JSON.parse(readFileSync(configFile, 'utf8'));
 
       const code = pipelineEngine.generatePipelineCode(pipeline.id);
-      
-      const outputFile = options.output || 
+
+      const outputFile = options.output ||
         `${options.name.replace(/\s+/g, '-').toLowerCase()}-transform.${options.format}`;
 
       writeFileSync(outputFile, code);
