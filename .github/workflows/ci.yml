@@ -1,4 +1,3 @@
-
 name: CI/CD Pipeline
 
 on:
@@ -21,28 +20,28 @@ jobs:
     strategy:
       matrix:
         node-version: [18, 20]
-        
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm install
-        
+
       - name: Install missing type definitions
-        run: npm install --save-dev @types/d3
-        
+        run: npm install @types/d3
+
       - name: Run type check
         run: npm run type-check
-        
+
       - name: Build package
         run: npm run build
-        
+
       - name: Verify build artifacts
         run: |
           echo "Checking build artifacts..."
@@ -56,7 +55,7 @@ jobs:
             exit 1
           fi
           echo "✅ Build artifacts present"
-          
+
       - name: Test package structure
         run: |
           echo "Testing package structure..."
@@ -69,32 +68,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-          
+
       - name: Install dependencies
         run: npm install
-        
+
       - name: Install missing type definitions
-        run: npm install --save-dev @types/d3
-        
+        run: npm install @types/d3
+
       - name: Build package
         run: npm run build
-        
+
       - name: Update version (if manual trigger)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
         run: |
           npm version ${{ github.event.inputs.version }} --no-git-tag-version
-          
+
       - name: Publish to NPM
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+
       - name: Create release summary
         run: |
           VERSION=${{ github.event.inputs.version || github.event.release.tag_name }}
@@ -110,32 +109,32 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm install
-        
+
       - name: Install missing type definitions
-        run: npm install --save-dev @types/d3
-        
+        run: npm install @types/d3
+
       - name: Build package
         run: npm run build
-        
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        
+
       - name: Create Pages content
         run: |
           mkdir -p _site
           cp -r examples/* _site/
           cp -r dist _site/
           cp README.md _site/
-          
+
           cat > _site/index.html << 'EOF'
           <!DOCTYPE html>
           <html>
@@ -165,11 +164,11 @@ jobs:
           </body>
           </html>
           EOF
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '_site'
-          
+
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
