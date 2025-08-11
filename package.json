@@ -18,10 +18,9 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "check": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "echo 'Linting will be added in future versions' && exit 0",
-    "type-check": "tsc --noEmit",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },

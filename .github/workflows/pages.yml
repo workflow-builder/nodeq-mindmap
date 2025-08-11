@@ -1,0 +1,91 @@
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build package
+        run: npm run build
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Create Pages content
+        run: |
+          mkdir -p _site
+          cp -r examples/* _site/
+          cp -r dist _site/
+          cp README.md _site/
+          
+          # Create index.html for GitHub Pages
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>NodeQ MindMap - Examples</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; }
+                  .example { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+                  a { color: #0066cc; text-decoration: none; }
+                  a:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <h1>NodeQ MindMap Examples</h1>
+              <div class="example">
+                  <h2><a href="basic.html">Basic Example</a></h2>
+                  <p>Simple mind map visualization</p>
+              </div>
+              <div class="example">
+                  <h2><a href="pipeline-demo.html">Pipeline Demo</a></h2>
+                  <p>Advanced pipeline and data processing demo</p>
+              </div>
+              <div class="example">
+                  <h2><a href="https://www.npmjs.com/package/nodeq-mindmap">NPM Package</a></h2>
+                  <p>Install: npm install nodeq-mindmap</p>
+              </div>
+          </body>
+          </html>
+          EOF
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

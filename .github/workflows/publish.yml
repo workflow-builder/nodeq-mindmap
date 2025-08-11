@@ -27,10 +27,17 @@ jobs:
         run: npm ci
         
       - name: Run type check
-        run: npm run check
+        run: npm run type-check
         
       - name: Build package
         run: npm run build
+        
+      - name: Verify build
+        run: |
+          echo "Verifying build outputs..."
+          ls -la dist/
+          npm pack --dry-run
+          echo "✅ Package ready for publishing"
         
       - name: Update version (if manual trigger)
         if: github.event_name == 'workflow_dispatch'
@@ -44,5 +51,7 @@ jobs:
           
       - name: Create release summary
         run: |
-          echo "🎉 NodeQ MindMap v${{ github.event.inputs.version || github.event.release.tag_name }} published successfully!"
+          VERSION=${{ github.event.inputs.version || github.event.release.tag_name }}
+          echo "🎉 NodeQ MindMap v${VERSION} published successfully!"
           echo "📦 Package: https://www.npmjs.com/package/nodeq-mindmap"
+          echo "🔗 GitHub: https://github.com/workflow-builder/nodeq-mindmap"

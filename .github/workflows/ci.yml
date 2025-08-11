@@ -27,7 +27,7 @@ jobs:
         run: npm ci
         
       - name: Run type check
-        run: npm run check
+        run: npm run type-check
         
       - name: Build package
         run: npm run build
@@ -40,4 +40,14 @@ jobs:
             echo "❌ Missing dist/index.js"
             exit 1
           fi
+          if [ ! -f "dist/index.d.ts" ]; then
+            echo "❌ Missing dist/index.d.ts"
+            exit 1
+          fi
           echo "✅ Build artifacts present"
+          
+      - name: Test package structure
+        run: |
+          echo "Testing package structure..."
+          npm pack --dry-run
+          echo "✅ Package structure valid"
