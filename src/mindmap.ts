@@ -116,9 +116,12 @@ export class NodeQMindMap {
       .enter()
       .append('path')
       .attr('class', 'link')
-      .attr('d', d3.linkHorizontal()
-        .x((d: any) => d.y)
-        .y((d: any) => d.x))
+      .attr('d', (d: any) => {
+        const linkGen = d3.linkHorizontal()
+          .x((d: any) => d.y)
+          .y((d: any) => d.x);
+        return linkGen(d);
+      })
       .style('fill', 'none')
       .style('stroke', this.config.theme.linkColor)
       .style('stroke-width', '2px');
