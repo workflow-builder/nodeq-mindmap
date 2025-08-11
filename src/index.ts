@@ -20,8 +20,21 @@ export interface NodeQConfig {
   onDataTransformed?: (result: any) => void;
 }
 
-type InternalConfig = Required<NodeQConfig> & {
+type InternalConfig = {
+  container: string | HTMLElement;
+  data: any;
+  width: number;
+  height: number;
   theme: Required<Theme>;
+  interactive: boolean;
+  zoomable: boolean;
+  collapsible: boolean;
+  nodeSpacing: number;
+  levelSpacing: number;
+  onNodeClick: (node: MindMapNode) => void;
+  onNodeHover: (node: MindMapNode) => void;
+  onPipelineCreated?: (pipeline: PipelineConfig) => void;
+  onDataTransformed?: (result: any) => void;
 };
 
 export class NodeQMindMap {

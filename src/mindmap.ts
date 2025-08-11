@@ -116,9 +116,9 @@ export class NodeQMindMap {
       .enter()
       .append('path')
       .attr('class', 'link')
-      .attr('d', d3.linkHorizontal<d3.HierarchyPoint<MindMapNode>>()
-        .x(d => d.y)
-        .y(d => d.x))
+      .attr('d', d3.linkHorizontal()
+        .x((d: any) => d.y)
+        .y((d: any) => d.x))
       .style('fill', 'none')
       .style('stroke', this.config.theme.linkColor)
       .style('stroke-width', '2px');
@@ -130,7 +130,13 @@ export class NodeQMindMap {
           this.config.onNodeClick(d.data);
           if (this.config.collapsible) {
             // Toggle children visibility
-            d.children = d.children ? (d.depth === 0 ? null : d.children) : this.hasChildren(d) ? this.getChildren(d) : null;
+            if (d.children) {
+              (d as any)._children = d.children;
+              d.children = undefined;
+            } else if ((d as any)._children) {
+              d.children = (d as any)._children;
+              (d as any)._children = undefined;
+            }
             this.render(); // Re-render on collapse/expand
           }
         })
@@ -145,7 +151,7 @@ export class NodeQMindMap {
 
     // Zooming
     if (this.config.zoomable) {
-      const zoom = d3.zoom<SVGSVGElement>()
+      const zoom = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.1, 5])
         .on('zoom', (event) => {
           g.attr('transform', event.transform);
