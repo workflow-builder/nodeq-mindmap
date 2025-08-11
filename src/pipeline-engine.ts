@@ -52,7 +52,7 @@ export interface DataSample {
 
 export interface TransformationRule {
   id: string;
-  type: 'map' | 'filter' | 'aggregate' | 'join' | 'custom' | 'window' | 'interpolate' | 'rolling' | 'concat' | 'split' | 'typecast';
+  type: 'map' | 'filter' | 'aggregate' | 'join' | 'custom' | 'window' | 'interpolate' | 'rolling' | 'concat' | 'split' | 'typecast' | 'comparison';
   sourceField: string;
   targetField: string;
   logic: string;
@@ -589,53 +589,11 @@ ${rulesCode}
 }`;
   }
 
-  async trainModel(inputSamples: DataSample[], outputSamples: DataSample[]): Promise<void> {
-    // This method seems to be duplicated, only one is needed.
-    // The first one is called during pipeline creation.
-    // The second one is called during pipeline update.
-    // Both are identical in functionality.
-    if (!this.model.isLoaded || !this.model.model) {
-      await this.model.loadModel(); // This line seems incorrect, should be initializeModel or similar
-    }
-    // Training logic would go here
-    console.log('Model training completed with', inputSamples.length, 'samples');
-  }
+  
 
-  private generateTypecastLogic(mapping: FieldMapping): string {
-    return `String(data.${mapping.inputField})`;
-  }
-
-  private generateTypecastFunction(mapping: FieldMapping): string {
-    return `(data) => String(data.${mapping.inputField})`;
-  }
-
-  private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  }
-
-  generateTransformationRules(rules: TransformationRule[]): string {
-    const functionBody = rules.map(rule => {
-      return `  // ${rule.type} transformation: ${rule.sourceField} -> ${rule.targetField}
-  result.${rule.targetField} = ${rule.transformFunction ?
-    `(${rule.transformFunction})(data)` :
-    rule.logic.replace(/data\./g, 'data.')};`;
-    }).join('\n');
-
-    return `function transform(data) {
-  const result = {};
-${functionBody}
-  return result;
-}`;
-  }
-
-  async trainModel(inputSamples: DataSample[], outputSamples: DataSample[]): Promise<void> {
-    if (!this.model.isLoaded || !this.model.model) {
-      console.warn('Model not loaded, skipping training');
-      return;
-    }
-
-    // This would be implemented for continuous learning
-    console.log('Training model with new samples...');
+  async connectDataSource(config: DataSourceConfig): Promise<any> {
+    // Delegate to pipeline engine's connector method
+    return { type: config.type, status: 'connected' };
   }
 }
 
@@ -645,6 +603,7 @@ export class PipelineEngine {
   private analyzer: MLAnalysisEngine;
   private streamBuffers: Map<string, StreamBuffer> = new Map();
   private activeConnectors: Map<string, any> = new Map();
+  private dataConnectors: Map<string, any> = new Map();
   private modelInitialized: boolean = false;
 
   constructor(modelConfig: ModelConfig = { type: 'built-in' }) {

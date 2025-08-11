@@ -186,7 +186,7 @@ export class NodeQMindMap {
       .append('svg')
       .attr('width', this.config.width)
       .attr('height', this.config.height)
-      .style('background-color', this.config.theme.backgroundColor);
+      .style('background-color', this.config.theme.backgroundColor || '#ffffff');
 
     // Create main group for zooming/panning
     this.g = this.svg.append('g');
@@ -519,7 +519,7 @@ export class NodeQMindMap {
         .y(d => d.x + 50)
       )
       .style('fill', 'none')
-      .style('stroke', this.config.theme.linkColor)
+      .style('stroke', this.config.theme.linkColor || '#a0aec0')
       .style('stroke-width', 2);
 
     // Create nodes
@@ -534,7 +534,7 @@ export class NodeQMindMap {
     // Add node circles
     nodes.append('circle')
       .attr('r', 25)
-      .style('fill', this.config.theme.nodeColor)
+      .style('fill', this.config.theme.nodeColor || '#4299e1')
       .style('stroke', '#fff')
       .style('stroke-width', 3);
 
@@ -543,9 +543,9 @@ export class NodeQMindMap {
       .attr('dy', '.35em')
       .attr('x', d => d.children ? -30 : 30)
       .style('text-anchor', d => d.children ? 'end' : 'start')
-      .style('font-family', this.config.theme.fontFamily)
+      .style('font-family', this.config.theme.fontFamily || 'Arial, sans-serif')
       .style('font-size', `${this.config.theme.fontSize}px`)
-      .style('fill', this.config.theme.textColor)
+      .style('fill', this.config.theme.textColor || '#2d3748')
       .text(d => d.data.topic);
 
     // Add interactivity
