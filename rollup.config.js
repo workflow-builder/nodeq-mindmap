@@ -2,6 +2,14 @@
 import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import { builtinModules } from 'module';
+import pkg from './package.json' assert { type: 'json' };
+
+const externalDeps = [
+  ...builtinModules,
+  ...builtinModules.map(m => `node:${m}`), // node: specifiers
+  ...Object.keys(pkg.dependencies || {}), // externalize all runtime deps
+];
 
 export default [
   // Main library build
@@ -46,14 +54,7 @@ export default [
       format: 'cjs',
       banner: '#!/usr/bin/env node'
     },
-    external: (id) => {
-      // Mark Node.js built-ins as external
-      if (id.startsWith('node:') || ['fs', 'path', 'util', 'os', 'crypto', 'stream', 'events', 'url', 'https', 'http', 'zlib'].includes(id)) {
-        return true;
-      }
-      // Mark npm packages as external
-      return ['commander', 'jsdom', 'd3', '@tensorflow/tfjs'].includes(id);
-    },
+    external: externalDeps,
     plugins: [
       nodeResolve({
         preferBuiltins: true,
