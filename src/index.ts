@@ -1,41 +1,14 @@
-import * as d3 from 'd3';
-import { PipelineEngine, DataSample, PipelineConfig } from './pipeline-engine';
+// Main exports for NodeQ MindMap package
+export { NodeQMindMap } from './mindmap';
+export { JsonSchemaAdapter } from './json-adapter';
+export { PipelineEngine } from './pipeline-engine';
 
-export interface MindMapNode {
-  topic: string;
-  summary?: string;
-  skills?: string[];
-  children?: MindMapNode[];
-  [key: string]: any;
-}
-
-export interface EnhancedNodeQConfig extends NodeQConfig {
-  pipelineMode?: boolean;
-  onPipelineCreated?: (pipeline: PipelineConfig) => void;
-  onDataTransformed?: (result: any) => void;
-}
-
-export interface NodeQConfig {
-  container: string | HTMLElement;
-  data: any;
-  width?: number;
-  height?: number;
-  theme?: {
-    nodeColor?: string;
-    textColor?: string;
-    linkColor?: string;
-    backgroundColor?: string;
-    fontSize?: number;
-    fontFamily?: string;
-  };
-  interactive?: boolean;
-  zoomable?: boolean;
-  collapsible?: boolean;
-  nodeSpacing?: number;
-  levelSpacing?: number;
-  onNodeClick?: (node: MindMapNode) => void;
-  onNodeHover?: (node: MindMapNode) => void;
-}
+// Export all types
+export type { 
+  MindMapNode, 
+  NodeQConfig, 
+  EnhancedNodeQConfig 
+} from './types';
 
 export class JsonSchemaAdapter {
   static convertToStandard(data: any): MindMapNode {

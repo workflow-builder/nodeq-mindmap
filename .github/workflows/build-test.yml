@@ -1,0 +1,89 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+        
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run linting (if configured)
+        run: npm run lint || echo "No linting configured"
+        continue-on-error: true
+        
+      - name: Run tests
+        run: npm test
+        
+      - name: Build package
+        run: npm run build
+        
+      - name: Verify build artifacts
+        run: |
+          echo "Checking build artifacts..."
+          ls -la dist/
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ Missing dist/index.js"
+            exit 1
+          fi
+          if [ ! -f "dist/index.esm.js" ]; then
+            echo "❌ Missing dist/index.esm.js"
+            exit 1
+          fi
+          if [ ! -f "dist/index.d.ts" ]; then
+            echo "❌ Missing dist/index.d.ts"
+            exit 1
+          fi
+          echo "✅ All build artifacts present"
+          
+      - name: Test package installation
+        run: |
+          # Pack the package
+          npm pack
+          
+          # Create test directory
+          mkdir test-install
+          cd test-install
+          
+          # Initialize test package
+          npm init -y
+          
+          # Install the packed package
+          npm install ../nodeq-mindmap-*.tgz
+          
+          # Create simple test
+          cat > test.js << 'EOF'
+          const { ProcessorView } = require('nodeq-mindmap');
+          console.log('✅ Package imported successfully');
+          console.log('ProcessorView available:', typeof ProcessorView);
+          EOF
+          
+          # Run test
+          node test.js
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        if: matrix.node-version == 18  # Only upload once
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            *.tgz
+          retention-days: 7

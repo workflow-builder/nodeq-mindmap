@@ -1,0 +1,132 @@
+name: Publish NodeQ MindMap Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.1.0)'
+        required: true
+        default: '1.1.0'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: npm test
+        
+      - name: Build package
+        run: npm run build
+        
+      - name: Verify build
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Build failed - dist directory not found"
+            exit 1
+          fi
+          if [ ! -f "dist/index.js" ]; then
+            echo "Build failed - index.js not found"
+            exit 1
+          fi
+          echo "Build verification passed"
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build package
+        run: npm run build
+        
+      - name: Update version (if workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add package.json
+          git commit -m "Bump version to ${{ github.event.inputs.version }}" || exit 0
+          
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: NodeQ MindMap ${{ github.ref_name }}
+          body: |
+            ## 🚀 NodeQ MindMap ${{ github.ref_name }}
+            
+            ### ✨ Enhanced Features
+            - Interactive processor architecture visualization
+            - Animated data pipeline demonstrations
+            - Real-time processing status indicators
+            - ML-powered transformation showcases
+            
+            ### 📦 Installation
+            ```bash
+            npm install nodeq-mindmap@${{ github.ref_name }}
+            ```
+            
+            ### 🔗 Quick Start
+            ```javascript
+            import { ProcessorView } from 'nodeq-mindmap';
+            
+            const processor = new ProcessorView({
+              container: document.getElementById('processor'),
+              theme: 'dark',
+              animated: true
+            });
+            
+            processor.startAnimation();
+            ```
+            
+            ### 🌟 Use Cases
+            - E-commerce analytics pipelines
+            - IoT data processing
+            - Financial risk assessment
+            - Real-time monitoring dashboards
+          draft: false
+          prerelease: false
+          
+  notify:
+    needs: publish
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Notify Success
+        run: |
+          echo "🎉 NodeQ MindMap package published successfully!"
+          echo "📦 Package: nodeq-mindmap@$(echo $GITHUB_REF | sed 's/refs\/tags\///')"
+          echo "🔗 NPM: https://www.npmjs.com/package/nodeq-mindmap"
+          echo "📚 GitHub: https://github.com/workflow-builder/nodeq-mindmap"

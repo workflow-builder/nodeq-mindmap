@@ -1,14 +1,11 @@
 {
   "name": "nodeq-mindmap",
   "version": "1.1.0",
-  "description": "A revolutionary lightweight library that combines interactive mind map visualization with intelligent data pipeline building using ML analysis",
+  "description": "A lightweight, interactive mind map visualization library for hierarchical data structures with JSON schema adapter",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "nodeq-mindmap": "./dist/cli.js"
-  },
   "files": [
     "dist",
     "README.md",
@@ -22,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/nodeq-mindmap.git"
+    "url": "https://github.com/workflow-builder/nodeq-mindmap.git"
   },
   "keywords": [
     "mindmap",
@@ -32,17 +29,9 @@
     "hierarchical-data",
     "tree-visualization",
     "data-visualization",
-    "career-mapping",
     "json-to-mindmap",
-    "data-pipeline",
-    "etl",
-    "machine-learning",
-    "tensorflow",
-    "data-transformation",
-    "pipeline-builder",
-    "iot",
-    "kafka",
-    "real-time-processing"
+    "schema-adapter",
+    "data-pipeline"
   ],
   "author": "NODEQ Team",
   "license": "MIT",
