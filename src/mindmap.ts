@@ -1,57 +1,167 @@
-import { MindMapNode } from './types';
+import { MindMapNode, Theme } from './types';
+import * as d3 from 'd3';
 
-export class JsonSchemaAdapter {
-  static convertToStandard(data: any): MindMapNode {
-    if (!data || typeof data !== 'object') {
-      return {
-        topic: 'Invalid Data',
-        summary: 'Unable to process the provided data',
-        skills: ['error']
-      };
-    }
+// Assuming JsonSchemaAdapter is defined and exported elsewhere or data is already in MindMapNode format.
+// For demonstration, let's include a placeholder if it's not provided.
+// If JsonSchemaAdapter is in a separate file and needs to be imported, uncomment the line below:
+// import { JsonSchemaAdapter } from './jsonSchemaAdapter';
 
-    // Extract basic properties
-    const topic = data.topic || data.title || data.name || data.label || 'Unnamed Node';
-    const summary = data.summary || data.description || data.details || undefined;
-    const skills = this.extractSkills(data);
-    const children = this.extractChildren(data);
+export class NodeQMindMap {
+  private config: {
+    container: string | HTMLElement;
+    data: any;
+    width: number;
+    height: number;
+    theme: Theme;
+    interactive: boolean;
+    zoomable: boolean;
+    collapsible: boolean;
+    nodeSpacing: number;
+    levelSpacing: number;
+    onNodeClick: (node: MindMapNode) => void;
+    onNodeHover: (node: MindMapNode) => void;
+  };
 
-    const result: MindMapNode = {
-      topic,
-      summary,
-      skills,
-      children: children ? children.map(child => this.convertToStandard(child)) : undefined
+  constructor(config: any) {
+    this.config = {
+      container: config.container,
+      data: config.data,
+      width: config.width ?? 800,
+      height: config.height ?? 600,
+      theme: {
+        nodeColor: config.theme?.nodeColor ?? '#4299e1',
+        textColor: config.theme?.textColor ?? '#2d3748',
+        linkColor: config.theme?.linkColor ?? '#a0aec0',
+        backgroundColor: config.theme?.backgroundColor ?? '#ffffff',
+        fontSize: config.theme?.fontSize ?? 14,
+        fontFamily: config.theme?.fontFamily ?? 'Arial, sans-serif'
+      },
+      interactive: config.interactive ?? true,
+      zoomable: config.zoomable ?? true,
+      collapsible: config.collapsible ?? true,
+      nodeSpacing: config.nodeSpacing ?? 200,
+      levelSpacing: config.levelSpacing ?? 300,
+      onNodeClick: config.onNodeClick ?? (() => {}),
+      onNodeHover: config.onNodeHover ?? (() => {})
     };
-
-    // Add any additional properties
-    const excludedKeys = ['topic', 'title', 'name', 'label', 'summary', 'description', 'details', 'skills', 'tags', 'categories', 'keywords', 'attributes', 'children', 'items', 'nodes', 'subitems', 'elements', 'branches'];
-
-    Object.keys(data).forEach(key => {
-      if (!excludedKeys.includes(key)) {
-        result[key] = data[key];
-      }
-    });
-
-    return result;
   }
 
-  private static extractSkills(obj: any): string[] | undefined {
-    const skillFields = ['skills', 'tags', 'categories', 'keywords', 'attributes'];
-    for (const field of skillFields) {
-      if (Array.isArray(obj[field])) {
-        return obj[field].filter((item: any) => typeof item === 'string');
-      }
+  public render(): void {
+    if (!this.config.container) {
+      console.error('Container element is not provided.');
+      return;
     }
-    return undefined;
+
+    const container = typeof this.config.container === 'string'
+      ? document.querySelector(this.config.container)
+      : this.config.container;
+
+    if (!container) {
+      console.error('Container element not found.');
+      return;
+    }
+
+    d3.select(container).selectAll('*').remove(); // Clear previous content
+
+    const svg = d3.select(container)
+      .append('svg')
+      .attr('width', this.config.width)
+      .attr('height', this.config.height)
+      .style('background-color', this.config.theme.backgroundColor);
+
+    const g = svg.append('g')
+      .attr('transform', `translate(${this.config.width / 2}, ${this.config.height / 2})`);
+
+    if (!this.config.data) {
+      console.warn('No data provided for rendering.');
+      return;
+    }
+
+    // Convert data to the MindMapNode structure if it's not already
+    // const mindMapData = JsonSchemaAdapter.convertToStandard(this.config.data);
+    const mindMapData = this.config.data; // Directly use data if it's already in the correct format
+
+    const rootNode = d3.hierarchy(mindMapData);
+
+    // Tree layout
+    const treeLayout = d3.tree<MindMapNode>().size([this.config.height, this.config.width]);
+    const treeData = treeLayout(rootNode);
+
+    // Nodes
+    const nodes = g.selectAll('.node')
+      .data(treeData.descendants())
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .attr('transform', d => `translate(${d.y}, ${d.x})`);
+
+    nodes.append('circle')
+      .attr('r', 10)
+      .style('fill', this.config.theme.nodeColor)
+      .style('stroke', this.config.theme.linkColor)
+      .style('stroke-width', '2px');
+
+    nodes.append('text')
+      .attr('dy', '.35em')
+      .attr('x', d => d.children ? -13 : 13)
+      .style('text-anchor', d => d.children ? 'end' : 'start')
+      .style('font-size', `${this.config.theme.fontSize}px`)
+      .style('font-family', this.config.theme.fontFamily)
+      .style('fill', this.config.theme.textColor)
+      .text(d => d.data.topic);
+
+    // Links
+    const links = g.selectAll('.link')
+      .data(treeData.links())
+      .enter()
+      .append('path')
+      .attr('class', 'link')
+      .attr('d', d3.linkHorizontal<d3.HierarchyPoint<MindMapNode>>()
+        .x(d => d.y)
+        .y(d => d.x))
+      .style('fill', 'none')
+      .style('stroke', this.config.theme.linkColor)
+      .style('stroke-width', '2px');
+
+    // Interactivity
+    if (this.config.interactive) {
+      nodes
+        .on('click', (event, d) => {
+          this.config.onNodeClick(d.data);
+          if (this.config.collapsible) {
+            // Toggle children visibility
+            d.children = d.children ? (d.depth === 0 ? null : d.children) : this.hasChildren(d) ? this.getChildren(d) : null;
+            this.render(); // Re-render on collapse/expand
+          }
+        })
+        .on('mouseover', (event, d) => {
+          this.config.onNodeHover(d.data);
+          d3.select(event.currentTarget).select('circle').style('fill', '#ff0000'); // Example hover effect
+        })
+        .on('mouseout', (event, d) => {
+          d3.select(event.currentTarget).select('circle').style('fill', this.config.theme.nodeColor); // Reset fill
+        });
+    }
+
+    // Zooming
+    if (this.config.zoomable) {
+      const zoom = d3.zoom<SVGSVGElement>()
+        .scaleExtent([0.1, 5])
+        .on('zoom', (event) => {
+          g.attr('transform', event.transform);
+        });
+      svg.call(zoom);
+    }
   }
 
-  private static extractChildren(obj: any): any[] | undefined {
-    const childFields = ['children', 'items', 'nodes', 'subitems', 'elements', 'branches'];
-    for (const field of childFields) {
-      if (Array.isArray(obj[field])) {
-        return obj[field];
-      }
-    }
-    return undefined;
+  // Helper methods for collapse/expand logic
+  private hasChildren(node: d3.HierarchyNode<MindMapNode>): boolean {
+    // Check if the node has children data and if that array is not empty
+    return !!node.data && !!node.data.children && node.data.children.length > 0;
+  }
+
+  private getChildren(node: d3.HierarchyNode<MindMapNode>): d3.HierarchyNode<MindMapNode>[] | null {
+    // Ensure children exist and map them to HierarchyNode structure
+    return node.data.children ? node.data.children.map((child: MindMapNode) => d3.hierarchy(child)) : null;
   }
 }

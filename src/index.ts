@@ -1,25 +1,7 @@
 import * as d3 from 'd3';
 import { PipelineEngine } from './pipeline-engine';
-import { JsonSchemaAdapter } from './mindmap';
-import type { DataSample, PipelineConfig } from './types';
-
-export interface MindMapNode {
-  topic: string;
-  summary?: string;
-  skills?: string[];
-  children?: MindMapNode[];
-  _expanded?: boolean; // internal collapse flag
-  [key: string]: any;
-}
-
-type Theme = {
-  nodeColor: string;
-  textColor: string;
-  linkColor: string;
-  backgroundColor: string;
-  fontSize: number;
-  fontFamily: string;
-};
+import { JsonSchemaAdapter } from './json-adapter';
+import type { DataSample, PipelineConfig, MindMapNode, Theme } from './types';
 
 export interface NodeQConfig {
   container: string | HTMLElement;
@@ -38,23 +20,8 @@ export interface NodeQConfig {
   onDataTransformed?: (result: any) => void;
 }
 
-import { JsonSchemaAdapter } from './mindmap';
-
-type InternalConfig = {
-  container: string | HTMLElement;
-  data: any;
-  width: number;
-  height: number;
-  theme: Theme;
-  interactive: boolean;
-  zoomable: boolean;
-  collapsible: boolean;
-  nodeSpacing: number;
-  levelSpacing: number;
-  onNodeClick: (node: MindMapNode) => void;
-  onNodeHover: (node: MindMapNode) => void;
-  onPipelineCreated?: (p: PipelineConfig) => void;
-  onDataTransformed?: (r: any) => void;
+type InternalConfig = Required<NodeQConfig> & {
+  theme: Required<Theme>;
 };
 
 export class NodeQMindMap {
