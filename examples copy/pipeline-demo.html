@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeQ Pipeline Builder Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .config-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .config-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4299e1;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #3182ce;
+        }
+        
+        button.secondary {
+            background-color: #68d391;
+        }
+        
+        button.secondary:hover {
+            background-color: #48bb78;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        #mindmap-container {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 600px;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pipeline-code {
+            background-color: #f7fafc;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 10px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NodeQ Pipeline Builder</h1>
+            <p>Create ML-powered data transformation pipelines through configuration</p>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-panel">
+                <h3>Input Sample Data</h3>
+                <textarea id="inputSample" placeholder='Enter input sample JSON here, e.g.:
+{
+  "firstName": "John",
+  "lastName": "Doe", 
+  "age": 25
+}'></textarea>
+            </div>
+            
+            <div class="config-panel">
+                <h3>Output Sample Data</h3>
+                <textarea id="outputSample" placeholder='Enter output sample JSON here, e.g.:
+{
+  "fullName": "John Doe",
+  "isAdult": true
+}'></textarea>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button onclick="createPipeline()">Create Pipeline</button>
+            <button onclick="updateInput()" class="secondary">Update Input Sample</button>
+            <button onclick="updateOutput()" class="secondary">Update Output Sample</button>
+            <button onclick="testPipeline()">Test Pipeline</button>
+            <button onclick="exportPipelineCode()">Export Code</button>
+        </div>
+        
+        <div id="mindmap-container"></div>
+        
+        <div class="status">
+            <h3>Pipeline Status</h3>
+            <div id="pipelineStatus">No pipeline created yet</div>
+            
+            <h3>Generated Code</h3>
+            <div id="generatedCode" class="pipeline-code">Pipeline code will appear here</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { NodeQMindMap } from '../src/index.js';
+        
+        let mindMap;
+        
+        window.createPipeline = async function() {
+            const inputText = document.getElementById('inputSample').value.trim();
+            const outputText = document.getElementById('outputSample').value.trim();
+            
+            if (!inputText || !outputText) {
+                alert('Please provide both input and output sample data');
+                return;
+            }
+            
+            try {
+                const inputData = JSON.parse(inputText);
+                const outputData = JSON.parse(outputText);
+                
+                if (!mindMap) {
+                    mindMap = new NodeQMindMap({
+                        container: '#mindmap-container',
+                        data: {},
+                        width: 1000,
+                        height: 600
+                    });
+                }
+                
+                const pipeline = await mindMap.createDataPipeline('Data Transformation Pipeline', inputData, outputData);
+                
+                document.getElementById('pipelineStatus').innerHTML = `
+                    <strong>Pipeline Created!</strong><br>
+                    ID: ${pipeline.id}<br>
+                    Accuracy: ${(pipeline.accuracy * 100).toFixed(1)}%<br>
+                    Transformation Rules: ${pipeline.transformationRules.length}<br>
+                    Created: ${pipeline.createdAt.toLocaleString()}
+                `;
+                
+            } catch (error) {
+                alert('Error creating pipeline: ' + error.message);
+            }
+        };
+        
+        window.updateInput = async function() {
+            const inputText = document.getElementById('inputSample').value.trim();
+            
+            if (!inputText) {
+                alert('Please provide input sample data');
+                return;
+            }
+            
+            try {
+                const inputData = JSON.parse(inputText);
+                const pipeline = await mindMap.updatePipelineInput(inputData);
+                
+                document.getElementById('pipelineStatus').innerHTML = `
+                    <strong>Pipeline Updated with New Input!</strong><br>
+                    Accuracy: ${(pipeline.accuracy * 100).toFixed(1)}%<br>
+                    Transformation Rules: ${pipeline.transformationRules.length}
+                `;
+                
+            } catch (error) {
+                alert('Error updating pipeline: ' + error.message);
+            }
+        };
+        
+        window.updateOutput = async function() {
+            const outputText = document.getElementById('outputSample').value.trim();
+            
+            if (!outputText) {
+                alert('Please provide output sample data');
+                return;
+            }
+            
+            try {
+                const outputData = JSON.parse(outputText);
+                const pipeline = await mindMap.updatePipelineOutput(outputData);
+                
+                document.getElementById('pipelineStatus').innerHTML = `
+                    <strong>Pipeline Updated with New Output!</strong><br>
+                    Accuracy: ${(pipeline.accuracy * 100).toFixed(1)}%<br>
+                    Transformation Rules: ${pipeline.transformationRules.length}
+                `;
+                
+            } catch (error) {
+                alert('Error updating pipeline: ' + error.message);
+            }
+        };
+        
+        window.testPipeline = function() {
+            const inputText = document.getElementById('inputSample').value.trim();
+            
+            if (!inputText) {
+                alert('Please provide test input data');
+                return;
+            }
+            
+            try {
+                const inputData = JSON.parse(inputText);
+                const result = mindMap.executePipeline(inputData);
+                
+                document.getElementById('pipelineStatus').innerHTML = `
+                    <strong>Pipeline Execution Result:</strong><br>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                alert('Error executing pipeline: ' + error.message);
+            }
+        };
+        
+        window.exportPipelineCode = function() {
+            try {
+                const code = mindMap.exportPipelineCode();
+                document.getElementById('generatedCode').textContent = code;
+            } catch (error) {
+                alert('Error exporting pipeline code: ' + error.message);
+            }
+        };
+        
+        // Load sample data
+        document.getElementById('inputSample').value = JSON.stringify({
+            firstName: "John",
+            lastName: "Doe",
+            age: 25,
+            email: "john.doe@email.com"
+        }, null, 2);
+        
+        document.getElementById('outputSample').value = JSON.stringify({
+            fullName: "John Doe",
+            isAdult: true,
+            contact: "john.doe@email.com"
+        }, null, 2);
+    </script>
+</body>
+</html>
