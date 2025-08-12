@@ -66,7 +66,162 @@ console.log(result);
 // }
 ```
 
-## 🧠 ML Model Configuration
+## 🧠 ML Model Configurations
+
+### Built-in TensorFlow Model (Default)
+```javascript
+const mindMap = new NodeQMindMap({
+  container: '#mindmap-container',
+  data: {}
+});
+
+// Uses built-in TensorFlow.js model
+const pipeline = await mindMap.createDataPipeline(
+  'Default Pipeline',
+  inputSample,
+  outputSample
+);
+```
+
+### Custom TensorFlow Model
+```javascript
+const customModelConfig = {
+  type: 'tensorflow',
+  localPath: './models/custom-pipeline-model/model.json',
+  parameters: {
+    threshold: 0.8
+  }
+};
+
+const pipeline = await mindMap.createDataPipeline(
+  'Custom TF Pipeline',
+  inputSample,
+  outputSample,
+  { modelConfig: customModelConfig }
+);
+```
+
+### Hugging Face Model Integration
+```javascript
+const hfModelConfig = {
+  type: 'huggingface',
+  modelName: 'sentence-transformers/all-MiniLM-L6-v2',
+  endpoint: 'https://api-inference.huggingface.co/models/',
+  apiKey: process.env.HF_API_TOKEN
+};
+
+const pipeline = await mindMap.createDataPipeline(
+  'HF Semantic Pipeline',
+  inputSample,
+  outputSample,
+  { modelConfig: hfModelConfig }
+);
+```
+
+### OpenAI GPT Integration
+```javascript
+const openaiConfig = {
+  type: 'openai',
+  modelName: 'gpt-4',
+  apiKey: process.env.OPENAI_API_KEY,
+  parameters: {
+    temperature: 0.2,
+    maxTokens: 1000
+  }
+};
+
+const pipeline = await mindMap.createDataPipeline(
+  'GPT-Powered Pipeline',
+  inputSample,
+  outputSample,
+  { modelConfig: openaiConfig }
+);
+```
+
+### Custom API Model
+```javascript
+const customApiConfig = {
+  type: 'custom',
+  endpoint: 'https://your-ml-api.com/analyze',
+  apiKey: process.env.CUSTOM_API_KEY,
+  parameters: {
+    analysisType: 'pipeline-generation',
+    confidence: 0.9
+  }
+};
+
+const pipeline = await mindMap.createDataPipeline(
+  'Custom API Pipeline',
+  inputSample,
+  outputSample,
+  { modelConfig: customApiConfig }
+);
+```
+
+## 🔄 Pipeline Lifecycle Management
+
+### Pipeline States
+```javascript
+// Check pipeline status
+const status = mindMap.getPipelineStatus('My Pipeline');
+console.log(`Status: ${status.state}`); // 'ready', 'processing', 'error'
+
+// Get pipeline metrics
+const metrics = mindMap.getPipelineMetrics('My Pipeline');
+console.log(`Accuracy: ${metrics.accuracy}`);
+console.log(`Processing Time: ${metrics.avgProcessingTime}ms`);
+```
+
+### Batch Processing
+```javascript
+const batchData = [
+  { "firstName": "John", "lastName": "Doe", "age": 25 },
+  { "firstName": "Jane", "lastName": "Smith", "age": 30 },
+  { "firstName": "Bob", "lastName": "Johnson", "age": 35 }
+];
+
+const results = mindMap.executePipelineBatch(batchData);
+console.log(`Processed ${results.length} records`);
+```
+
+## 🏗️ Advanced Pipeline Configuration
+
+### Error Handling
+```javascript
+const pipelineOptions = {
+  errorHandling: {
+    strategy: 'continue', // 'fail-fast', 'continue', 'retry'
+    maxRetries: 3,
+    retryDelay: 1000,
+    onError: (error, data) => {
+      console.log(`Processing error: ${error.message}`);
+    }
+  }
+};
+
+const pipeline = await mindMap.createDataPipeline(
+  'Robust Pipeline',
+  inputSample,
+  outputSample,
+  pipelineOptions
+);
+```
+
+### Performance Optimization
+```javascript
+const performanceConfig = {
+  optimization: {
+    parallelProcessing: true,
+    batchSize: 1000,
+    cacheEnabled: true,
+    compressionEnabled: true
+  },
+  monitoring: {
+    enableMetrics: true,
+    logLevel: 'info'
+  }
+};
+```guration
 
 ### Built-in TensorFlow (Default)
 

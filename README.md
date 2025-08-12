@@ -164,12 +164,38 @@ const config = {
 - 💻 **CLI Support** - Headless rendering and automation
 - 🎨 **Framework Agnostic** - Works with React, Vue, Angular, vanilla JS
 
+## 🧠 AI/ML Integration
+
+NodeQ supports multiple AI backends for intelligent pipeline generation:
+
+- **🤖 TensorFlow.js** (Built-in) - Fast, offline processing
+- **🚀 OpenAI GPT-4** - Advanced reasoning capabilities  
+- **🤗 Hugging Face** - Specialized transformer models
+- **🔧 Custom APIs** - Integrate your own ML services
+
+```javascript
+// OpenAI integration example
+const openaiConfig = {
+  type: 'openai',
+  modelName: 'gpt-4',
+  apiKey: process.env.OPENAI_API_KEY
+};
+
+const pipeline = await mindMap.createDataPipeline(
+  'Smart Pipeline',
+  inputSample,
+  outputSample, 
+  { modelConfig: openaiConfig }
+);
+```
+
 ## 📚 Complete Documentation
 
 | 📖 Guide | 📝 Description |
 |----------|----------------|
 | **[Installation & Setup](docs/INSTALLATION.md)** | Complete setup, configuration, and framework integration |
 | **[Pipeline Builder Guide](docs/PIPELINE_GUIDE.md)** | ML-powered data transformation and ETL automation |
+| **[ML Models & AI Integration](docs/ML_MODELS.md)** | TensorFlow, OpenAI, Hugging Face integration guide |
 | **[CLI Usage](docs/CLI_GUIDE.md)** | Command-line interface and headless operations |
 | **[Real-World Use Cases](docs/USE_CASES.md)** | Industry examples and implementation patterns |
 | **[API Reference](docs/API_REFERENCE.md)** | Complete API documentation and TypeScript types |
