@@ -44,12 +44,20 @@ export interface DataSample {
   metadata?: any;
 }
 
+export interface TransformationRule {
+  sourceField: string;
+  targetField: string;
+  type: string;       // 'direct' | 'rename' | 'divide' | 'multiply' | 'convert' | 'constant'
+  confidence: number; // 0–1
+  factor?: number;    // used by divide/multiply rules
+}
+
 export interface PipelineConfig {
   id: string;
   name: string;
   inputSample: DataSample;
   outputSample: DataSample;
-  transformationRules: any[];
+  transformationRules: TransformationRule[];
   modelConfig: any;
   accuracy: number;
   version: string;

@@ -1,6 +1,6 @@
 {
   "name": "nodeq-mindmap",
-  "version": "2.0.0",
+  "version": "2.2.0",
   "description": "Interactive D3.js mind map visualization library with ETL pipeline engine. Render career maps, org charts, or any hierarchical data — browser and Node.js CLI included.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",

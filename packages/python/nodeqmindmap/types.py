@@ -37,8 +37,9 @@ class DataSample:
 class TransformationRule:
     source_field: str
     target_field: str
-    type: str
-    confidence: float
+    type: str           # direct | rename | divide | multiply | convert | constant
+    confidence: float   # 0–1
+    factor: float | None = None  # used by divide/multiply rules
 
 
 @dataclass

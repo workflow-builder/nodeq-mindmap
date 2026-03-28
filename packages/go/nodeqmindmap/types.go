@@ -21,11 +21,13 @@ type DataSample struct {
 }
 
 // TransformationRule describes a single field mapping between input and output.
+// Type is one of: direct, rename, divide, multiply, convert, constant.
 type TransformationRule struct {
-	SourceField string  `json:"sourceField"`
-	TargetField string  `json:"targetField"`
-	Type        string  `json:"type"`
-	Confidence  float64 `json:"confidence"`
+	SourceField string   `json:"sourceField"`
+	TargetField string   `json:"targetField"`
+	Type        string   `json:"type"`
+	Confidence  float64  `json:"confidence"`
+	Factor      *float64 `json:"factor,omitempty"` // used by divide/multiply rules
 }
 
 // PipelinePerformance holds runtime metrics for a pipeline.
