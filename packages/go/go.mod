@@ -1,3 +1,3 @@
-module github.com/workflow-builder/nodeq-mindmap/packages/go
+module github.com/nodeq/nodeq-mindmap
 
 go 1.21
