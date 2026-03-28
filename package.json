@@ -1,11 +1,12 @@
 {
   "name": "nodeq-mindmap",
   "version": "2.1.0",
-  "description": "Enhanced mind map visualization library with ML-powered data pipeline capabilities",
+  "description": "Interactive D3.js mind map visualization library with ETL pipeline engine. Render career maps, org charts, or any hierarchical data — browser and Node.js CLI included.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.umd.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "bin": {
     "nodeq-mindmap": "dist/cli.js"
   },
@@ -29,11 +30,13 @@
     "visualization",
     "d3",
     "data-pipeline",
-    "machine-learning",
+    "etl",
     "typescript",
     "interactive",
     "svg",
-    "cli"
+    "cli",
+    "career-map",
+    "hierarchy"
   ],
   "author": "NODEQ Team",
   "license": "MIT",
@@ -52,11 +55,9 @@
     "d3": "^7.0.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "^4.21.0",
-    "@types/d3": "^7.4.3",
-    "commander": "^12.1.0",
-    "d3": "^7.0.0",
-    "jsdom": "^25.0.1"
+    "d3": "^7.9.0",
+    "jsdom": "^25.0.1",
+    "commander": "^12.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
@@ -64,7 +65,10 @@
     "@rollup/plugin-typescript": "^12.1.0",
     "rollup": "^4.22.4",
     "tslib": "^2.7.0",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "@types/d3": "^7.4.3",
+    "@types/node": "^20.0.0",
+    "@types/jsdom": "^21.0.0"
   },
   "publishConfig": {
     "access": "public",

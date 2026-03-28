@@ -1,7 +1,24 @@
 import * as d3 from 'd3';
 import { PipelineEngine } from './pipeline-engine';
-import { JsonSchemaAdapter } from './json-adapter';
-import type { DataSample, PipelineConfig, MindMapNode, Theme } from './types';
+import type { DataSample, PipelineConfig } from './types';
+
+export interface MindMapNode {
+  topic: string;
+  summary?: string;
+  skills?: string[];
+  children?: MindMapNode[];
+  _expanded?: boolean; // internal collapse flag
+  [key: string]: any;
+}
+
+type Theme = {
+  nodeColor: string;
+  textColor: string;
+  linkColor: string;
+  backgroundColor: string;
+  fontSize: number;
+  fontFamily: string;
+};
 
 export interface NodeQConfig {
   container: string | HTMLElement;
@@ -20,12 +37,44 @@ export interface NodeQConfig {
   onDataTransformed?: (result: any) => void;
 }
 
+export class JsonSchemaAdapter {
+  static convertToStandard(data: any): MindMapNode {
+    if (!data || typeof data !== 'object') {
+      return { topic: 'Invalid Data', summary: 'Unable to process data' };
+    }
+    const root: MindMapNode = {
+      topic: data.topic || data.title || data.name || 'Root',
+      summary: data.summary || data.description || undefined,
+      skills: Array.isArray(data.skills) ? data.skills : undefined,
+      children: []
+    };
+    const entries = Object.entries(data).filter(([k]) => !['topic','title','name','summary','description','skills','children'].includes(k));
+    for (const [key, value] of entries) {
+      if (value && typeof value === 'object') {
+        root.children!.push({
+          topic: key,
+          summary: Array.isArray(value) ? `${value.length} item(s)` : undefined,
+          children: Array.isArray(value)
+            ? value.slice(0, 20).map((v, i) => typeof v === 'object' ? { topic: `${key}[${i}]`, children: [this.convertToStandard(v)] } : { topic: String(v) })
+            : [this.convertToStandard(value)]
+        });
+      } else {
+        root.children!.push({ topic: `${key}: ${String(value)}` });
+      }
+    }
+    if (Array.isArray((data as any).children)) {
+      root.children!.push(...(data as any).children.map((c: any) => this.convertToStandard(c)));
+    }
+    return root;
+  }
+}
+
 type InternalConfig = {
   container: string | HTMLElement;
   data: any;
   width: number;
   height: number;
-  theme: Required<Theme>;
+  theme: Theme;
   interactive: boolean;
   zoomable: boolean;
   collapsible: boolean;
@@ -33,8 +82,8 @@ type InternalConfig = {
   levelSpacing: number;
   onNodeClick: (node: MindMapNode) => void;
   onNodeHover: (node: MindMapNode) => void;
-  onPipelineCreated?: (pipeline: PipelineConfig) => void;
-  onDataTransformed?: (result: any) => void;
+  onPipelineCreated?: (p: PipelineConfig) => void;
+  onDataTransformed?: (r: any) => void;
 };
 
 export class NodeQMindMap {

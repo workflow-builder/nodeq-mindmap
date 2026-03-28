@@ -1,0 +1,95 @@
+name: Publish Python Package
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 2.1.0)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Update version
+        working-directory: packages/python
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            # Strip leading 'v' if present
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=$(python -c "
+import tomllib
+with open('pyproject.toml', 'rb') as f:
+    print(tomllib.load(f)['project']['version'])
+")
+          fi
+          echo "Publishing version: ${VERSION}"
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
+          echo "version=${VERSION}" >> $GITHUB_ENV
+
+      - name: Build distributions
+        working-directory: packages/python
+        run: python -m build
+
+      - name: Check dist
+        working-directory: packages/python
+        run: |
+          ls -la dist/
+          twine check dist/*
+          echo "✅ Distribution valid"
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: packages/python/dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # Required for trusted publishing (OIDC)
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Uses OIDC trusted publishing — no PYPI_TOKEN secret needed if configured on PyPI.
+          # If you prefer token auth, uncomment the next line and add PYPI_TOKEN secret instead:
+          # password: ${{ secrets.PYPI_TOKEN }}
+          packages-dir: dist/
+
+      - name: Summary
+        run: |
+          echo "## Python Package Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package:** \`nodeqmindmap\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ env.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "pip install nodeqmindmap==${{ env.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

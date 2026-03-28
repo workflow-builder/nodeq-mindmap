@@ -1,0 +1,81 @@
+name: Publish Go Package
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build and vet
+        working-directory: packages/go
+        run: |
+          go build ./...
+          go vet ./...
+          echo "✅ Go package valid"
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG="v$(date +'%Y%m%d%H%M%S')-dev"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "go_tag=packages/go/${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Tag Go module release
+        run: |
+          GO_TAG="${{ steps.version.outputs.go_tag }}"
+          git tag "${GO_TAG}" || echo "Tag ${GO_TAG} already exists, skipping"
+          git push origin "${GO_TAG}" || echo "Tag already pushed"
+
+      - name: Trigger pkg.go.dev index
+        run: |
+          MODULE="github.com/workflow-builder/nodeq-mindmap/packages/go"
+          VERSION="${{ steps.version.outputs.tag }}"
+          echo "Fetching ${MODULE}@${VERSION} to trigger pkg.go.dev indexing..."
+          curl -s "https://sum.golang.org/lookup/${MODULE}@${VERSION}" || true
+          curl -s "https://proxy.golang.org/${MODULE}/@v/${VERSION}.info" || true
+          echo "✅ Triggered pkg.go.dev indexing for ${MODULE}@${VERSION}"
+
+      - name: Summary
+        run: |
+          echo "## Go Package Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Module:** \`github.com/workflow-builder/nodeq-mindmap/packages/go\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.version.outputs.go_tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Install with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "go get github.com/workflow-builder/nodeq-mindmap/packages/go@${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

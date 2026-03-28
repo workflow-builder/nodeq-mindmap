@@ -8,16 +8,33 @@ export interface MindMapNode {
   [key: string]: any;
 }
 
-export interface Theme {
-  nodeColor: string;
-  textColor: string;
-  linkColor: string;
-  backgroundColor: string;
-  fontSize: number;
-  fontFamily: string;
+export interface NodeQConfig {
+  container: string | HTMLElement;
+  data: any;
+  width?: number;
+  height?: number;
+  theme?: {
+    nodeColor?: string;
+    textColor?: string;
+    linkColor?: string;
+    backgroundColor?: string;
+    fontSize?: number;
+    fontFamily?: string;
+  };
+  interactive?: boolean;
+  zoomable?: boolean;
+  collapsible?: boolean;
+  nodeSpacing?: number;
+  levelSpacing?: number;
+  onNodeClick?: (node: MindMapNode) => void;
+  onNodeHover?: (node: MindMapNode) => void;
 }
 
-
+export interface EnhancedNodeQConfig extends NodeQConfig {
+  pipelineMode?: boolean;
+  onPipelineCreated?: (pipeline: any) => void;
+  onDataTransformed?: (result: any) => void;
+}
 
 // Data pipeline related types
 export interface DataSample {
