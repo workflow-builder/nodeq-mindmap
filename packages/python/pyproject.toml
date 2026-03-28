@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nodeqmindmap"
-version = "2.2.0"
+version = "2.3.0"
 description = "Python port of nodeq-mindmap: MindMapNode data model and ETL pipeline engine"
 readme = "README.md"
 license = { text = "MIT" }

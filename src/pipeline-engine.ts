@@ -278,7 +278,7 @@ export class PipelineEngine {
     return lines.join('\n');
   }
 
-  async startRealtimeProcessing(pipelineId: string, onData: (result: any) => void, intervalMs = 1000): Promise<() => void> {
+  startRealtimeProcessing(pipelineId: string, onData: (result: any) => void, intervalMs = 1000): () => void {
     const pipeline = this.pipelines.get(pipelineId);
     if (!pipeline) throw new Error(`Pipeline ${pipelineId} not found`);
 

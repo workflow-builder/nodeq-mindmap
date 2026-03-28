@@ -1,6 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 
-export default {
+// Library build (browser + Node)
+const libConfig = {
   input: 'src/index.ts',
   output: [
     {
@@ -18,9 +19,7 @@ export default {
       format: 'umd',
       name: 'NodeQMindMap',
       exports: 'named',
-      globals: {
-        'd3': 'd3'
-      }
+      globals: { 'd3': 'd3' }
     }
   ],
   external: ['d3'],
@@ -32,3 +31,23 @@ export default {
     })
   ]
 };
+
+// CLI build — standalone Node.js executable
+const cliConfig = {
+  input: 'src/cli.ts',
+  output: {
+    file: 'dist/cli.js',
+    format: 'cjs',
+    exports: 'none'
+  },
+  external: ['d3', 'fs', 'path', 'commander', 'jsdom'],
+  plugins: [
+    typescript({
+      declaration: false,
+      declarationMap: false,
+      rootDir: 'src'
+    })
+  ]
+};
+
+export default [libConfig, cliConfig];
