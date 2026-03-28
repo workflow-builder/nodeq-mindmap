@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v2.2.0)'
+        required: false
+        default: ''
 
 jobs:
   validate:
@@ -41,6 +46,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "release" ]; then
             TAG="${{ github.event.release.tag_name }}"
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            TAG="${{ github.event.inputs.version }}"
           else
             TAG="v$(date +'%Y%m%d%H%M%S')-dev"
           fi
@@ -62,20 +69,12 @@ jobs:
         run: |
           MODULE="github.com/workflow-builder/nodeq-mindmap/packages/go"
           VERSION="${{ steps.version.outputs.tag }}"
-          echo "Fetching ${MODULE}@${VERSION} to trigger pkg.go.dev indexing..."
-          curl -s "https://sum.golang.org/lookup/${MODULE}@${VERSION}" || true
           curl -s "https://proxy.golang.org/${MODULE}/@v/${VERSION}.info" || true
-          echo "✅ Triggered pkg.go.dev indexing for ${MODULE}@${VERSION}"
+          echo "✅ Triggered pkg.go.dev for ${MODULE}@${VERSION}"
 
       - name: Summary
         run: |
           echo "## Go Package Published" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Module:** \`github.com/workflow-builder/nodeq-mindmap/packages/go\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Tag:** \`${{ steps.version.outputs.go_tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Install with:" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          echo "go get github.com/workflow-builder/nodeq-mindmap/packages/go@${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "Install: \`go get github.com/workflow-builder/nodeq-mindmap/packages/go@${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY

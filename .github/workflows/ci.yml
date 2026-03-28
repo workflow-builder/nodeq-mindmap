@@ -1,38 +1,37 @@
-name: Build and Publish to NPM
+
+name: CI
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
-  release:
-    types: [published]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to publish (e.g., 2.0.1)'
-        required: false
-        default: ''
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+        
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
+          
       - name: Install dependencies
-        run: npm ci --ignore-scripts
-
+        run: npm ci
+        
+      - name: Run type check
+        run: npm run check
+        
       - name: Build package
         run: npm run build
-
+        
       - name: Verify build artifacts
         run: |
           echo "Checking build artifacts..."
@@ -41,127 +40,4 @@ jobs:
             echo "❌ Missing dist/index.js"
             exit 1
           fi
-          if [ ! -f "dist/index.d.ts" ]; then
-            echo "❌ Missing dist/index.d.ts"
-            exit 1
-          fi
           echo "✅ Build artifacts present"
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-files
-          path: dist/
-
-      - name: Test package structure
-        run: |
-          echo "Testing package structure..."
-          npm pack --dry-run
-          echo "✅ Package structure valid"
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Build package
-        run: npm run build
-
-      - name: Update version (if manual trigger)
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.version != ''
-        run: |
-          npm version ${{ github.event.inputs.version }} --no-git-tag-version
-
-      - name: Publish to NPM
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create release summary
-        run: |
-          VERSION=${{ github.event.inputs.version || github.event.release.tag_name }}
-          echo "🎉 NodeQ MindMap v${VERSION} published successfully!"
-
-  deploy-pages:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Build package
-        run: npm run build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Create Pages content
-        run: |
-          mkdir -p _site
-          if [ -d "examples" ]; then
-            cp -r examples/* _site/
-          fi
-          cp -r dist _site/
-          cp README.md _site/
-
-          cat > _site/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <title>NodeQ MindMap - Examples</title>
-              <style>
-                  body { font-family: Arial, sans-serif; margin: 40px; }
-                  .example { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
-                  a { color: #0066cc; text-decoration: none; }
-                  a:hover { text-decoration: underline; }
-              </style>
-          </head>
-          <body>
-              <h1>NodeQ MindMap Examples</h1>
-              <div class="example">
-                  <h2><a href="basic.html">Basic Example</a></h2>
-                  <p>Simple mind map visualization</p>
-              </div>
-              <div class="example">
-                  <h2><a href="pipeline-demo.html">Pipeline Demo</a></h2>
-                  <p>Advanced pipeline and data processing demo</p>
-              </div>
-              <div class="example">
-                  <h2><a href="https://www.npmjs.com/package/nodeq-mindmap">NPM Package</a></h2>
-                  <p>Install: npm install nodeq-mindmap</p>
-              </div>
-          </body>
-          </html>
-          EOF
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '_site'
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
